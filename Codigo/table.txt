@@ -1,0 +1,40 @@
+Tabla Variables:
+0			a
+1			b
+2			c_10
+3			op
+4			a
+5			i
+6			c
+7			i
+8			i
+9			i
+10			i
+11			MyStruct
+12			var1
+13			var2
+14			var3
+15			o
+16			i
+17			a
+18			min
+19			i
+20			i
+21			i
+22			candidate
+23			i
+24			candidate
+25			min
+26			candidate
+27			a
+28			b
+29			c
+30			a
+31			a
+
+Tabla Cadenas:
+0			'a'
+1			'a'
+
+Tabla Errores:
+
