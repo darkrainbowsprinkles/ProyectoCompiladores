@@ -25,12 +25,15 @@ digit [0-9]
 letter [a-zA-Z]
 character [^']
 comparison <|>|<=|>=|==
-emptySpace [ \t\n]
+emptySpace [ \t\n\r]
 
 %%
 "int"                               { registerToken(yytext, "Palabras Reservadas"); return INT; }
 "float"                             { registerToken(yytext, "Palabras Reservadas"); return FLOAT; }
 "char"                              { registerToken(yytext, "Palabras Reservadas"); return CHAR; }
+"bool"                              { registerToken(yytext, "Palabras Reservadas"); return BOOL; }
+"true"                              { registerToken(yytext, "Palabras Reservadas"); return TRUE_LITERAL; }
+"false"                             { registerToken(yytext, "Palabras Reservadas"); return FALSE_LITERAL; }
 "for"                               { registerToken(yytext, "Palabras Reservadas"); return FOR; }
 "if"                                { registerToken(yytext, "Palabras Reservadas"); return IF; }
 "else"                              { registerToken(yytext, "Palabras Reservadas"); return ELSE; }
@@ -41,19 +44,33 @@ emptySpace [ \t\n]
 "case"                              { registerToken(yytext, "Palabras Reservadas"); return CASE; }
 "break"                             { registerToken(yytext, "Palabras Reservadas"); return BREAK; }
 "default"                           { registerToken(yytext, "Palabras Reservadas"); return DEFAULT; }
-{letter}+(_|{letter}|{digit})*      { registerToken(yytext, "Variables"); return IDENTIFIER; }
+"void"                              { registerToken(yytext, "Palabras Reservadas"); return VOID; }
+"return"                            { registerToken(yytext, "Palabras Reservadas"); return RETURN; }
+"print"                             { registerToken(yytext, "Palabras Reservadas"); return PRINT; }
+"read"                              { registerToken(yytext, "Palabras Reservadas"); return READ; }
+
+{letter}+(_|{letter}|{digit})* { 
+    registerToken(yytext, "Variables"); 
+    yylval.string_val = strdup(yytext); 
+    return IDENTIFIER; 
+}
+
 {digit}+                            { registerToken(yytext, "Numeros"); return INT_NUMBER; }
 {digit}+\.{digit}+                  { registerToken(yytext, "Numeros"); return FLOAT_NUMBER; }
 {comparison}                        { registerToken(yytext, "Operadores"); return COMPARISON; }    
-{emptySpace}+                       { }
+{emptySpace}+                       { /* Ignorar espacios */ }
 '{character}?'                      { registerToken(yytext, "Cadenas"); return CHAR_LITERAL; }
 "="                                 { registerToken(yytext, "Operadores"); return ASSIGNATION; }
 "+"                                 { registerToken(yytext, "Operadores"); return PLUS; }
 "-"                                 { registerToken(yytext, "Operadores"); return MINUS; }
 "*"                                 { registerToken(yytext, "Operadores"); return MULTIPLY; }
+"//".*                              { /* Ignorar comentarios de una linea */ }
 "/"                                 { registerToken(yytext, "Operadores"); return DIVIDE; }
 "++"                                { registerToken(yytext, "Operadores"); return INCREMENT; }
 "--"                                { registerToken(yytext, "Operadores"); return DECREMENT; }
+"&&"                                { registerToken(yytext, "Operadores Logicos"); return AND; }
+"||"                                { registerToken(yytext, "Operadores Logicos"); return OR; }
+"!"                                 { registerToken(yytext, "Operadores Logicos"); return NOT; }
 "("                                 { registerToken(yytext, "Simbolos Especiales"); return OPEN_PARENTHESIS; }
 ")"                                 { registerToken(yytext, "Simbolos Especiales"); return CLOSE_PARENTHESIS; }
 "{"                                 { registerToken(yytext, "Simbolos Especiales"); return OPEN_BRACE; }
@@ -168,13 +185,11 @@ int yywrap()
     return 1; 
 }
 
-int main(int argc, char *argv[])
+/* int main(int argc, char *argv[])
 {
     readInputFile(argc, argv);
 
     allTokens = (TokenData **)malloc(MAX_TOKENS * sizeof(TokenData *));
-
-    yylex();
 
     if(yyparse() == 0)
     {
@@ -188,4 +203,4 @@ int main(int argc, char *argv[])
     fclose(yyin);
 
     return 0;
-}
+} */

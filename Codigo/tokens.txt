@@ -1,282 +1,125 @@
 			Token			Clase
 
 0			int			Palabras Reservadas
-1			a			Variables
+1			maxFrames			Variables
 2			=			Operadores
-3			0			Numeros
+3			60			Numeros
 4			;			Simbolos Especiales
 5			int			Palabras Reservadas
-6			b			Variables
-7			;			Simbolos Especiales
-8			float			Palabras Reservadas
-9			c_10			Variables
-10			=			Operadores
-11			100			Numeros
-12			;			Simbolos Especiales
-13			char			Palabras Reservadas
-14			op			Variables
-15			=			Operadores
-16			'a'			Cadenas
+6			currentFrame			Variables
+7			=			Operadores
+8			0			Numeros
+9			;			Simbolos Especiales
+10			bool			Palabras Reservadas
+11			engineReady			Variables
+12			=			Operadores
+13			false			Palabras Reservadas
+14			;			Simbolos Especiales
+15			int			Palabras Reservadas
+16			shipVelocity			Variables
 17			;			Simbolos Especiales
-18			100			Numeros
-19			+			Operadores
-20			100			Numeros
-21			;			Simbolos Especiales
-22			100			Numeros
-23			;			Simbolos Especiales
-24			a			Variables
-25			;			Simbolos Especiales
-26			int			Palabras Reservadas
-27			i			Variables
-28			;			Simbolos Especiales
-29			int			Palabras Reservadas
-30			c			Variables
+18			void			Palabras Reservadas
+19			initGraphicsEngine			Variables
+20			(			Simbolos Especiales
+21			)			Simbolos Especiales
+22			{			Simbolos Especiales
+23			engineReady			Variables
+24			=			Operadores
+25			true			Palabras Reservadas
+26			;			Simbolos Especiales
+27			print			Palabras Reservadas
+28			(			Simbolos Especiales
+29			engineReady			Variables
+30			)			Simbolos Especiales
 31			;			Simbolos Especiales
-32			do			Palabras Reservadas
-33			{			Simbolos Especiales
-34			for			Palabras Reservadas
-35			(			Simbolos Especiales
-36			i			Variables
-37			=			Operadores
-38			0			Numeros
-39			;			Simbolos Especiales
-40			i			Variables
-41			<			Operadores
-42			100			Numeros
-43			;			Simbolos Especiales
-44			i			Variables
-45			+			Operadores
-46			99			Numeros
-47			)			Simbolos Especiales
-48			{			Simbolos Especiales
-49			}			Simbolos Especiales
-50			}			Simbolos Especiales
-51			while			Palabras Reservadas
-52			(			Simbolos Especiales
-53			i			Variables
-54			>			Operadores
-55			10			Numeros
-56			)			Simbolos Especiales
+32			return			Palabras Reservadas
+33			;			Simbolos Especiales
+34			}			Simbolos Especiales
+35			int			Palabras Reservadas
+36			getShipSpeed			Variables
+37			(			Simbolos Especiales
+38			)			Simbolos Especiales
+39			{			Simbolos Especiales
+40			int			Palabras Reservadas
+41			inputSpeed			Variables
+42			;			Simbolos Especiales
+43			read			Palabras Reservadas
+44			(			Simbolos Especiales
+45			inputSpeed			Variables
+46			)			Simbolos Especiales
+47			;			Simbolos Especiales
+48			if			Palabras Reservadas
+49			(			Simbolos Especiales
+50			inputSpeed			Variables
+51			<			Operadores
+52			0			Numeros
+53			)			Simbolos Especiales
+54			{			Simbolos Especiales
+55			return			Palabras Reservadas
+56			0			Numeros
 57			;			Simbolos Especiales
-58			struct			Palabras Reservadas
-59			MyStruct			Variables
-60			{			Simbolos Especiales
-61			int			Palabras Reservadas
-62			var1			Variables
+58			}			Simbolos Especiales
+59			return			Palabras Reservadas
+60			inputSpeed			Variables
+61			*			Operadores
+62			2			Numeros
 63			;			Simbolos Especiales
-64			float			Palabras Reservadas
-65			var2			Variables
-66			;			Simbolos Especiales
-67			char			Palabras Reservadas
-68			var3			Variables
-69			;			Simbolos Especiales
-70			int			Palabras Reservadas
-71			o			Variables
-72			;			Simbolos Especiales
-73			}			Simbolos Especiales
-74			;			Simbolos Especiales
-75			for			Palabras Reservadas
-76			(			Simbolos Especiales
-77			i			Variables
-78			=			Operadores
-79			100			Numeros
-80			;			Simbolos Especiales
-81			100			Numeros
-82			;			Simbolos Especiales
-83			100			Numeros
-84			)			Simbolos Especiales
-85			{			Simbolos Especiales
-86			}			Simbolos Especiales
-87			switch			Palabras Reservadas
-88			(			Simbolos Especiales
-89			100			Numeros
-90			-			Operadores
-91			100			Numeros
-92			)			Simbolos Especiales
-93			{			Simbolos Especiales
-94			for			Palabras Reservadas
-95			(			Simbolos Especiales
-96			10			Numeros
-97			;			Simbolos Especiales
-98			100			Numeros
-99			;			Simbolos Especiales
-100			100			Numeros
-101			)			Simbolos Especiales
-102			{			Simbolos Especiales
-103			}			Simbolos Especiales
-104			case			Palabras Reservadas
-105			1			Numeros
-106			:			Simbolos Especiales
-107			break			Palabras Reservadas
-108			;			Simbolos Especiales
-109			if			Palabras Reservadas
-110			(			Simbolos Especiales
-111			100			Numeros
-112			>			Operadores
-113			a			Variables
-114			)			Simbolos Especiales
-115			{			Simbolos Especiales
-116			}			Simbolos Especiales
-117			case			Palabras Reservadas
-118			2			Numeros
-119			:			Simbolos Especiales
-120			break			Palabras Reservadas
-121			;			Simbolos Especiales
+64			}			Simbolos Especiales
+65			void			Palabras Reservadas
+66			updateScene			Variables
+67			(			Simbolos Especiales
+68			)			Simbolos Especiales
+69			{			Simbolos Especiales
+70			if			Palabras Reservadas
+71			(			Simbolos Especiales
+72			!			Operadores Logicos
+73			engineReady			Variables
+74			)			Simbolos Especiales
+75			{			Simbolos Especiales
+76			return			Palabras Reservadas
+77			;			Simbolos Especiales
+78			}			Simbolos Especiales
+79			shipVelocity			Variables
+80			=			Operadores
+81			getShipSpeed			Variables
+82			(			Simbolos Especiales
+83			)			Simbolos Especiales
+84			;			Simbolos Especiales
+85			currentFrame			Variables
+86			=			Operadores
+87			currentFrame			Variables
+88			+			Operadores
+89			1			Numeros
+90			;			Simbolos Especiales
+91			print			Palabras Reservadas
+92			(			Simbolos Especiales
+93			currentFrame			Variables
+94			)			Simbolos Especiales
+95			;			Simbolos Especiales
+96			}			Simbolos Especiales
+97			void			Palabras Reservadas
+98			mainRenderLoop			Variables
+99			(			Simbolos Especiales
+100			)			Simbolos Especiales
+101			{			Simbolos Especiales
+102			initGraphicsEngine			Variables
+103			(			Simbolos Especiales
+104			)			Simbolos Especiales
+105			;			Simbolos Especiales
+106			while			Palabras Reservadas
+107			(			Simbolos Especiales
+108			currentFrame			Variables
+109			<			Operadores
+110			maxFrames			Variables
+111			&&			Operadores Logicos
+112			engineReady			Variables
+113			==			Operadores
+114			true			Palabras Reservadas
+115			)			Simbolos Especiales
+116			{			Simbolos Especiales
+117			updateScene			Variables
+118			(			Simbolos Especiales
+119			)			Simbolos Especiales
+120			;			Simbolos Especiales
+121			}			Simbolos Especiales
 122			}			Simbolos Especiales
-123			switch			Palabras Reservadas
-124			(			Simbolos Especiales
-125			10			Numeros
-126			)			Simbolos Especiales
-127			{			Simbolos Especiales
-128			for			Palabras Reservadas
-129			(			Simbolos Especiales
-130			10			Numeros
-131			;			Simbolos Especiales
-132			100			Numeros
-133			;			Simbolos Especiales
-134			100			Numeros
-135			)			Simbolos Especiales
-136			{			Simbolos Especiales
-137			}			Simbolos Especiales
-138			case			Palabras Reservadas
-139			1			Numeros
-140			+			Operadores
-141			1			Numeros
-142			+			Operadores
-143			3			Numeros
-144			:			Simbolos Especiales
-145			for			Palabras Reservadas
-146			(			Simbolos Especiales
-147			10			Numeros
-148			;			Simbolos Especiales
-149			100			Numeros
-150			;			Simbolos Especiales
-151			100			Numeros
-152			)			Simbolos Especiales
-153			{			Simbolos Especiales
-154			}			Simbolos Especiales
-155			break			Palabras Reservadas
-156			;			Simbolos Especiales
-157			for			Palabras Reservadas
-158			(			Simbolos Especiales
-159			10			Numeros
-160			;			Simbolos Especiales
-161			100			Numeros
-162			;			Simbolos Especiales
-163			100			Numeros
-164			)			Simbolos Especiales
-165			{			Simbolos Especiales
-166			}			Simbolos Especiales
-167			case			Palabras Reservadas
-168			2			Numeros
-169			:			Simbolos Especiales
-170			break			Palabras Reservadas
-171			;			Simbolos Especiales
-172			case			Palabras Reservadas
-173			'a'			Cadenas
-174			:			Simbolos Especiales
-175			break			Palabras Reservadas
-176			;			Simbolos Especiales
-177			case			Palabras Reservadas
-178			1			Numeros
-179			:			Simbolos Especiales
-180			break			Palabras Reservadas
-181			;			Simbolos Especiales
-182			default			Palabras Reservadas
-183			:			Simbolos Especiales
-184			break			Palabras Reservadas
-185			;			Simbolos Especiales
-186			}			Simbolos Especiales
-187			if			Palabras Reservadas
-188			(			Simbolos Especiales
-189			100			Numeros
-190			>			Operadores
-191			100			Numeros
-192			)			Simbolos Especiales
-193			{			Simbolos Especiales
-194			int			Palabras Reservadas
-195			min			Variables
-196			=			Operadores
-197			0			Numeros
-198			;			Simbolos Especiales
-199			for			Palabras Reservadas
-200			(			Simbolos Especiales
-201			int			Palabras Reservadas
-202			i			Variables
-203			=			Operadores
-204			0			Numeros
-205			;			Simbolos Especiales
-206			i			Variables
-207			<			Operadores
-208			100			Numeros
-209			;			Simbolos Especiales
-210			i			Variables
-211			++			Operadores
-212			)			Simbolos Especiales
-213			{			Simbolos Especiales
-214			int			Palabras Reservadas
-215			candidate			Variables
-216			=			Operadores
-217			i			Variables
-218			;			Simbolos Especiales
-219			if			Palabras Reservadas
-220			(			Simbolos Especiales
-221			candidate			Variables
-222			<			Operadores
-223			100			Numeros
-224			)			Simbolos Especiales
-225			{			Simbolos Especiales
-226			min			Variables
-227			=			Operadores
-228			candidate			Variables
-229			;			Simbolos Especiales
-230			}			Simbolos Especiales
-231			}			Simbolos Especiales
-232			}			Simbolos Especiales
-233			else			Palabras Reservadas
-234			if			Palabras Reservadas
-235			(			Simbolos Especiales
-236			a			Variables
-237			*			Operadores
-238			b			Variables
-239			/			Operadores
-240			c			Variables
-241			>			Operadores
-242			100			Numeros
-243			)			Simbolos Especiales
-244			{			Simbolos Especiales
-245			while			Palabras Reservadas
-246			(			Simbolos Especiales
-247			1			Numeros
-248			)			Simbolos Especiales
-249			{			Simbolos Especiales
-250			for			Palabras Reservadas
-251			(			Simbolos Especiales
-252			a			Variables
-253			=			Operadores
-254			1			Numeros
-255			;			Simbolos Especiales
-256			100			Numeros
-257			;			Simbolos Especiales
-258			100			Numeros
-259			)			Simbolos Especiales
-260			{			Simbolos Especiales
-261			}			Simbolos Especiales
-262			}			Simbolos Especiales
-263			}			Simbolos Especiales
-264			else			Palabras Reservadas
-265			if			Palabras Reservadas
-266			(			Simbolos Especiales
-267			1000			Numeros
-268			>			Operadores
-269			100			Numeros
-270			*			Operadores
-271			a			Variables
-272			+			Operadores
-273			100			Numeros
-274			)			Simbolos Especiales
-275			{			Simbolos Especiales
-276			}			Simbolos Especiales
-277			else			Palabras Reservadas
-278			{			Simbolos Especiales
-279			}			Simbolos Especiales

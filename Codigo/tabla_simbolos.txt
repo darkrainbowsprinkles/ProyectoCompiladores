@@ -1,0 +1,7 @@
+NOMBRE		TIPO		CATEGORIA
+------------------------------------------
+maxFrames		int		variable
+currentFrame		int		variable
+engineReady		bool		variable
+shipVelocity		int		variable
+inputSpeed		int		variable
