@@ -480,7 +480,7 @@ char *yytext;
 #line 2 "lexer.l"
 #include <stdio.h>
 #include <string.h>
-#include "y.tab.h"
+#include "parser.tab.h"
 
 #define MAX_TOKENS 1000
 
@@ -756,12 +756,12 @@ YY_RULE_SETUP
 case 5:
 YY_RULE_SETUP
 #line 35 "lexer.l"
-{ registerToken(yytext, "Palabras Reservadas"); return TRUE_LITERAL; }
+{ registerToken(yytext, "Palabras Reservadas"); yylval.string_val = strdup(yytext); return TRUE_LITERAL; }
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 36 "lexer.l"
-{ registerToken(yytext, "Palabras Reservadas"); return FALSE_LITERAL; }
+{ registerToken(yytext, "Palabras Reservadas"); yylval.string_val = strdup(yytext); return FALSE_LITERAL; }
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
@@ -845,17 +845,17 @@ YY_RULE_SETUP
 case 22:
 YY_RULE_SETUP
 #line 58 "lexer.l"
-{ registerToken(yytext, "Numeros"); return INT_NUMBER; }
+{ registerToken(yytext, "Numeros"); yylval.string_val = strdup(yytext); return INT_NUMBER; }
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 59 "lexer.l"
-{ registerToken(yytext, "Numeros"); return FLOAT_NUMBER; }
+{ registerToken(yytext, "Numeros"); yylval.string_val = strdup(yytext); return FLOAT_NUMBER; }
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 60 "lexer.l"
-{ registerToken(yytext, "Operadores"); return COMPARISON; }    
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return COMPARISON; }    
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
@@ -865,27 +865,27 @@ YY_RULE_SETUP
 case 26:
 YY_RULE_SETUP
 #line 62 "lexer.l"
-{ registerToken(yytext, "Cadenas"); return CHAR_LITERAL; }
+{ registerToken(yytext, "Cadenas"); yylval.string_val = strdup(yytext); return CHAR_LITERAL; }
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
 #line 63 "lexer.l"
-{ registerToken(yytext, "Operadores"); return ASSIGNATION; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return ASSIGNATION; }
 	YY_BREAK
 case 28:
 YY_RULE_SETUP
 #line 64 "lexer.l"
-{ registerToken(yytext, "Operadores"); return PLUS; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return PLUS; }
 	YY_BREAK
 case 29:
 YY_RULE_SETUP
 #line 65 "lexer.l"
-{ registerToken(yytext, "Operadores"); return MINUS; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return MINUS; }
 	YY_BREAK
 case 30:
 YY_RULE_SETUP
 #line 66 "lexer.l"
-{ registerToken(yytext, "Operadores"); return MULTIPLY; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return MULTIPLY; }
 	YY_BREAK
 case 31:
 YY_RULE_SETUP
@@ -895,32 +895,32 @@ YY_RULE_SETUP
 case 32:
 YY_RULE_SETUP
 #line 68 "lexer.l"
-{ registerToken(yytext, "Operadores"); return DIVIDE; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return DIVIDE; }
 	YY_BREAK
 case 33:
 YY_RULE_SETUP
 #line 69 "lexer.l"
-{ registerToken(yytext, "Operadores"); return INCREMENT; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return INCREMENT; }
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
 #line 70 "lexer.l"
-{ registerToken(yytext, "Operadores"); return DECREMENT; }
+{ registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return DECREMENT; }
 	YY_BREAK
 case 35:
 YY_RULE_SETUP
 #line 71 "lexer.l"
-{ registerToken(yytext, "Operadores Logicos"); return AND; }
+{ registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return AND; }
 	YY_BREAK
 case 36:
 YY_RULE_SETUP
 #line 72 "lexer.l"
-{ registerToken(yytext, "Operadores Logicos"); return OR; }
+{ registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return OR; }
 	YY_BREAK
 case 37:
 YY_RULE_SETUP
 #line 73 "lexer.l"
-{ registerToken(yytext, "Operadores Logicos"); return NOT; }
+{ registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return NOT; }
 	YY_BREAK
 case 38:
 YY_RULE_SETUP

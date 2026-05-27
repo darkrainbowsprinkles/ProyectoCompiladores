@@ -1,0 +1,42 @@
+function helper int begin
+return 4
+end function helper
+function main int begin
+a = 2
+b = 3
+t1 = a + b
+c = t1
+t2 = c * 4
+d = t2
+flag = true
+print d
+t3 = 1 && 0
+t4 = ! 0
+t5 = t3 || t4
+ifFalse t5 goto L1
+t6 = d + 0
+d = t6
+t7 = a * 1
+a = t7
+goto L2
+L1:
+d = 99
+L2:
+L3:
+ifFalse 0 goto L4
+t8 = a + 1
+a = t8
+t9 = d + 2
+d = t9
+goto L3
+L4:
+L5:
+t10 = b + 1
+b = t10
+if false goto L5
+t11 = call helper
+c = t11
+print c
+return d
+a = 100
+end function main

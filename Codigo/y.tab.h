@@ -47,90 +47,92 @@ extern int yydebug;
       know about them.  */
    enum yytokentype {
      IDENTIFIER = 258,
-     INT = 259,
-     FLOAT = 260,
-     CHAR = 261,
-     FOR = 262,
-     IF = 263,
-     ELSE = 264,
-     WHILE = 265,
-     DO = 266,
-     SWITCH = 267,
-     BREAK = 268,
-     CASE = 269,
-     DEFAULT = 270,
-     STRUCT = 271,
-     INT_NUMBER = 272,
-     FLOAT_NUMBER = 273,
-     CHAR_LITERAL = 274,
-     COMPARISON = 275,
-     ASSIGNATION = 276,
-     PLUS = 277,
-     MINUS = 278,
-     MULTIPLY = 279,
-     DIVIDE = 280,
-     INCREMENT = 281,
-     DECREMENT = 282,
-     OPEN_PARENTHESIS = 283,
-     CLOSE_PARENTHESIS = 284,
-     OPEN_BRACE = 285,
-     CLOSE_BRACE = 286,
-     SEMICOLON = 287,
-     COLON = 288,
-     BOOL = 289,
-     TRUE_LITERAL = 290,
-     FALSE_LITERAL = 291,
-     AND = 292,
-     OR = 293,
-     NOT = 294,
+     INT_NUMBER = 259,
+     FLOAT_NUMBER = 260,
+     CHAR_LITERAL = 261,
+     COMPARISON = 262,
+     ASSIGNATION = 263,
+     PLUS = 264,
+     MINUS = 265,
+     MULTIPLY = 266,
+     DIVIDE = 267,
+     INCREMENT = 268,
+     DECREMENT = 269,
+     AND = 270,
+     OR = 271,
+     NOT = 272,
+     TRUE_LITERAL = 273,
+     FALSE_LITERAL = 274,
+     INT = 275,
+     FLOAT = 276,
+     CHAR = 277,
+     FOR = 278,
+     IF = 279,
+     ELSE = 280,
+     WHILE = 281,
+     DO = 282,
+     SWITCH = 283,
+     BREAK = 284,
+     CASE = 285,
+     DEFAULT = 286,
+     STRUCT = 287,
+     OPEN_PARENTHESIS = 288,
+     CLOSE_PARENTHESIS = 289,
+     OPEN_BRACE = 290,
+     CLOSE_BRACE = 291,
+     SEMICOLON = 292,
+     COLON = 293,
+     BOOL = 294,
      VOID = 295,
      RETURN = 296,
      PRINT = 297,
-     READ = 298
+     READ = 298,
+     LOWER_THAN_ELSE = 299
    };
 #endif
 /* Tokens.  */
 #define IDENTIFIER 258
-#define INT 259
-#define FLOAT 260
-#define CHAR 261
-#define FOR 262
-#define IF 263
-#define ELSE 264
-#define WHILE 265
-#define DO 266
-#define SWITCH 267
-#define BREAK 268
-#define CASE 269
-#define DEFAULT 270
-#define STRUCT 271
-#define INT_NUMBER 272
-#define FLOAT_NUMBER 273
-#define CHAR_LITERAL 274
-#define COMPARISON 275
-#define ASSIGNATION 276
-#define PLUS 277
-#define MINUS 278
-#define MULTIPLY 279
-#define DIVIDE 280
-#define INCREMENT 281
-#define DECREMENT 282
-#define OPEN_PARENTHESIS 283
-#define CLOSE_PARENTHESIS 284
-#define OPEN_BRACE 285
-#define CLOSE_BRACE 286
-#define SEMICOLON 287
-#define COLON 288
-#define BOOL 289
-#define TRUE_LITERAL 290
-#define FALSE_LITERAL 291
-#define AND 292
-#define OR 293
-#define NOT 294
+#define INT_NUMBER 259
+#define FLOAT_NUMBER 260
+#define CHAR_LITERAL 261
+#define COMPARISON 262
+#define ASSIGNATION 263
+#define PLUS 264
+#define MINUS 265
+#define MULTIPLY 266
+#define DIVIDE 267
+#define INCREMENT 268
+#define DECREMENT 269
+#define AND 270
+#define OR 271
+#define NOT 272
+#define TRUE_LITERAL 273
+#define FALSE_LITERAL 274
+#define INT 275
+#define FLOAT 276
+#define CHAR 277
+#define FOR 278
+#define IF 279
+#define ELSE 280
+#define WHILE 281
+#define DO 282
+#define SWITCH 283
+#define BREAK 284
+#define CASE 285
+#define DEFAULT 286
+#define STRUCT 287
+#define OPEN_PARENTHESIS 288
+#define CLOSE_PARENTHESIS 289
+#define OPEN_BRACE 290
+#define CLOSE_BRACE 291
+#define SEMICOLON 292
+#define COLON 293
+#define BOOL 294
 #define VOID 295
 #define RETURN 296
 #define PRINT 297
 #define READ 298
+#define LOWER_THAN_ELSE 299
 
 
 
@@ -138,13 +140,17 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 2058 of yacc.c  */
-#line 51 "parser.y"
+#line 858 "parser.y"
 
-    char* string_val; 
+    char* string_val;
+    ExprAttr* expr;
+    CodeAttr* code;
+    ForAttr* forpart;
+    IfAttr* ifpart;
 
 
 /* Line 2058 of yacc.c  */
-#line 148 "y.tab.h"
+#line 154 "y.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */

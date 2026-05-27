@@ -1,7 +1,7 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "y.tab.h"
+#include "parser.tab.h"
 
 #define MAX_TOKENS 1000
 
@@ -32,8 +32,8 @@ emptySpace [ \t\n\r]
 "float"                             { registerToken(yytext, "Palabras Reservadas"); return FLOAT; }
 "char"                              { registerToken(yytext, "Palabras Reservadas"); return CHAR; }
 "bool"                              { registerToken(yytext, "Palabras Reservadas"); return BOOL; }
-"true"                              { registerToken(yytext, "Palabras Reservadas"); return TRUE_LITERAL; }
-"false"                             { registerToken(yytext, "Palabras Reservadas"); return FALSE_LITERAL; }
+"true"                              { registerToken(yytext, "Palabras Reservadas"); yylval.string_val = strdup(yytext); return TRUE_LITERAL; }
+"false"                             { registerToken(yytext, "Palabras Reservadas"); yylval.string_val = strdup(yytext); return FALSE_LITERAL; }
 "for"                               { registerToken(yytext, "Palabras Reservadas"); return FOR; }
 "if"                                { registerToken(yytext, "Palabras Reservadas"); return IF; }
 "else"                              { registerToken(yytext, "Palabras Reservadas"); return ELSE; }
@@ -55,22 +55,22 @@ emptySpace [ \t\n\r]
     return IDENTIFIER; 
 }
 
-{digit}+                            { registerToken(yytext, "Numeros"); return INT_NUMBER; }
-{digit}+\.{digit}+                  { registerToken(yytext, "Numeros"); return FLOAT_NUMBER; }
-{comparison}                        { registerToken(yytext, "Operadores"); return COMPARISON; }    
+{digit}+                            { registerToken(yytext, "Numeros"); yylval.string_val = strdup(yytext); return INT_NUMBER; }
+{digit}+\.{digit}+                  { registerToken(yytext, "Numeros"); yylval.string_val = strdup(yytext); return FLOAT_NUMBER; }
+{comparison}                        { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return COMPARISON; }    
 {emptySpace}+                       { /* Ignorar espacios */ }
-'{character}?'                      { registerToken(yytext, "Cadenas"); return CHAR_LITERAL; }
-"="                                 { registerToken(yytext, "Operadores"); return ASSIGNATION; }
-"+"                                 { registerToken(yytext, "Operadores"); return PLUS; }
-"-"                                 { registerToken(yytext, "Operadores"); return MINUS; }
-"*"                                 { registerToken(yytext, "Operadores"); return MULTIPLY; }
+'{character}?'                      { registerToken(yytext, "Cadenas"); yylval.string_val = strdup(yytext); return CHAR_LITERAL; }
+"="                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return ASSIGNATION; }
+"+"                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return PLUS; }
+"-"                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return MINUS; }
+"*"                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return MULTIPLY; }
 "//".*                              { /* Ignorar comentarios de una linea */ }
-"/"                                 { registerToken(yytext, "Operadores"); return DIVIDE; }
-"++"                                { registerToken(yytext, "Operadores"); return INCREMENT; }
-"--"                                { registerToken(yytext, "Operadores"); return DECREMENT; }
-"&&"                                { registerToken(yytext, "Operadores Logicos"); return AND; }
-"||"                                { registerToken(yytext, "Operadores Logicos"); return OR; }
-"!"                                 { registerToken(yytext, "Operadores Logicos"); return NOT; }
+"/"                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return DIVIDE; }
+"++"                                { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return INCREMENT; }
+"--"                                { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return DECREMENT; }
+"&&"                                { registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return AND; }
+"||"                                { registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return OR; }
+"!"                                 { registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return NOT; }
 "("                                 { registerToken(yytext, "Simbolos Especiales"); return OPEN_PARENTHESIS; }
 ")"                                 { registerToken(yytext, "Simbolos Especiales"); return CLOSE_PARENTHESIS; }
 "{"                                 { registerToken(yytext, "Simbolos Especiales"); return OPEN_BRACE; }
