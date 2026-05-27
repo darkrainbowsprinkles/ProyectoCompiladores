@@ -53,9 +53,6 @@
     pdfauthor={Ortega Novoa Octavio}
 }
 
-% ===========================
-% DOCUMENTO
-% ===========================
 \begin{document}
 
 \begin{titlepage}
@@ -97,9 +94,13 @@
 \newpage
 
 \section{Introducción}
-Este reporte documenta el diseño e implementación de un compilador para un mini-lenguaje de programación orientado a fines académicos. El objetivo principal fue construir un traductor dirigido por la sintaxis capaz de reconocer declaraciones, expresiones aritméticas y booleanas, estructuras de control, funciones sin parámetros, así como entrada y salida estándar.
+Este reporte presenta el diseño e implementación de un compilador para un mini-lenguaje de programación con fines académicos. Durante el desarrollo se buscó que el compilador no solo reconociera programas válidos, sino que también mostrara con claridad cómo una entrada fuente se transforma en código intermedio y después en un código final más simple.
 
-El desarrollo se organizó en las etapas clásicas de un compilador: análisis léxico, análisis sintáctico, traducción dirigida por la sintaxis, generación de código intermedio de tres direcciones, optimización básica y generación de código final en un pseudocódigo de ensamblador simple.
+La idea principal fue construir un traductor dirigido por la sintaxis capaz de reconocer declaraciones, expresiones aritméticas y booleanas, estructuras de control, funciones sin parámetros, así como entrada y salida estándar. El proyecto se fue armando por etapas: primero el análisis léxico, después el análisis sintáctico, luego la generación de intermedio, más tarde la optimización y al final la traducción a un pseudocódigo de ensamblador simple.
+
+Una parte importante del trabajo fue ir probando cada fase por separado. Eso permitió detectar errores más rápido, corregirlos sin rehacer todo el compilador y entender mejor cómo se conectan las distintas partes del proceso de compilación.
+
+Para llevarlo a cabo se usaron C como lenguaje principal de implementación, Flex para el análisis léxico, Bison para el análisis sintáctico y LaTeX para la documentación del reporte. Con eso se pudo construir tanto el compilador como el informe técnico del proyecto.
 
 \section{Requisitos del proyecto}
 El proyecto contempla los siguientes componentes:
@@ -115,7 +116,9 @@ El proyecto contempla los siguientes componentes:
 \end{itemize}
 
 \section{Diseño del mini-lenguaje}
-Antes de implementar el compilador se definió una sintaxis sencilla, cercana a C, para facilitar la escritura de programas de prueba y su traducción.
+Antes de implementar el compilador se definió una sintaxis sencilla, cercana a C, para facilitar la escritura de programas de prueba y su traducción. Se eligió este estilo porque resulta familiar y evita pelear demasiado con la sintaxis mientras se trabaja en la parte importante del proyecto, que es la traducción.
+
+La intención no fue inventar un lenguaje completamente nuevo, sino diseñar uno lo bastante claro para poder probar funciones, condiciones, ciclos y expresiones booleanas sin que la gramática se volviera innecesariamente complicada.
 
 \subsection{Elementos sintácticos principales}
 El lenguaje incluye:
@@ -147,6 +150,8 @@ int main()
 
 \section{Análisis léxico}
 El análisis léxico se implementó con Flex. Su función es reconocer unidades léxicas, asignarles un tipo de token y entregar estos tokens al parser. Esta etapa también ayuda a construir un registro de entradas útiles, como tablas de tokens o reportes de errores léxicos.
+
+En la práctica, el lexer fue la primera capa de validación del proyecto. Si aquí se reconoce mal una palabra reservada o un operador, el parser ya empieza con información incorrecta. Por eso fue importante dejar bien definidos los tokens desde el principio.
 
 \subsection{Objetivo del lexer}
 El lexer identifica:
@@ -180,10 +185,16 @@ El lexer identifica:
 \end{lstlisting}
 
 \subsection{Comentarios de implementación}
-Una decisión importante fue adjuntar el lexema a varios tokens mediante \texttt{yylval.string	extunderscore val}. Esto permite que el parser use el valor textual de identificadores, literales y operadores para construir el código intermedio. También se descartaron espacios en blanco y comentarios para evitar ruido en el análisis sintáctico.
+Una decisión importante fue adjuntar el lexema a varios tokens mediante \texttt{yylval.string\_val}. Esto permite que el parser use el valor textual de identificadores, literales y operadores para construir el código intermedio. También se descartaron espacios en blanco y comentarios para evitar ruido en el análisis sintáctico.
+
+Al principio hubo un detalle común en este tipo de proyecto: varios tokens se devolvían solo como tipo y no como valor textual. Eso servía para validar la sintaxis, pero no alcanzaba para generar código. La corrección fue pasar el lexema directamente en tokens como identificadores, literales numéricos y operadores que luego se usan en la traducción.
+
+También se cuidó el orden de las reglas para evitar confusiones con operadores de dos caracteres como \texttt{&&} y \texttt{||}. En el lexer, el orden sí importa, porque una regla mal acomodada puede hacer que se capture un símbolo más corto antes que uno más largo.
 
 \section{Análisis sintáctico}
-El parser se implementó con Bison. Su función es validar la estructura del programa y construir, simultáneamente, los atributos necesarios para la traducción dirigida por la sintaxis.
+El parser se implementó con Bison. Su función es validar la estructura del programa y construir, simultáneamente, los atributos necesarios para la traducción dirigida por la sintaxis. Aquí ya no solo importa que el programa esté bien escrito, sino también cómo se va a transformar cada instrucción.
+
+En esta etapa se definieron reglas para sentencias, expresiones, funciones y estructuras de control. Cada regla se pensó para que la gramática siguiera siendo entendible y para que fuera posible insertar acciones semánticas en los puntos correctos.
 
 \subsection{Estructura general}
 La gramática define reglas para:
@@ -233,8 +244,31 @@ operation:
 \subsection{Nota de traducción dirigida por la sintaxis}
 Cada regla sintáctica construye atributos heredados o sintetizados que permiten generar el código intermedio durante el análisis. Esto evita recorrer el árbol sintáctico en una fase separada y simplifica la implementación general.
 
+En otras palabras, el código no se traduce ``después'', sino mientras se analiza. Esa decisión fue práctica porque permitió aprovechar la misma estructura del parser para producir temporales, etiquetas y saltos sin crear una pasada extra.
+
+\subsection{Problemas encontrados en la gramática}
+Una dificultad importante fue el manejo de la precedencia, sobre todo con expresiones booleanas y con el clásico problema del \texttt{else} ambiguo. Al inicio aparecían conflictos de desplazamiento y reducción, así que fue necesario declarar precedencias explícitas y ajustar algunas reglas para que el parser entendiera la intención correcta.
+
+Otro problema que salió en las pruebas fue que ciertas construcciones dejaban un punto y coma adicional al final. Eso se corrigió adaptando la gramática a la forma en la que realmente se estaban escribiendo los programas de prueba.
+
+\section{Implementación y resolución de problemas}
+Esta sección resume cómo se fue armando el compilador de forma práctica. El proyecto no se resolvió de una sola vez; más bien se fue depurando por capas.
+
+Primero se validó el análisis léxico y sintáctico con programas pequeños. Después se agregó la tabla de símbolos para registrar variables y funciones. Una vez que esa parte estuvo estable, se empezó a generar código intermedio con temporales y etiquetas. Más adelante se añadió la optimización básica y, finalmente, el código final.
+
+Durante este proceso se resolvieron tres problemas típicos:
+\begin{itemize}[label={-}]
+    \item Tokens que no pasaban el lexema correcto al parser.
+    \item Ambigüedades en la gramática al manejar expresiones y \texttt{else}.
+    \item Redundancias en el código intermedio y final, como saltos innecesarios o temporales que no aportaban mucho.
+\end{itemize}
+
+La ventaja de trabajar así fue que cada problema quedó aislado en una etapa concreta. Eso hizo posible corregirlo sin afectar todo el compilador al mismo tiempo.
+
 \section{Tabla de símbolos}
 La tabla de símbolos almacena la información semántica básica del programa: nombre, tipo y categoría de cada identificador. Su papel es fundamental para controlar declaraciones, detectar duplicados y mantener el contexto de variables y funciones.
+
+Aquí el compilador empezó a comportarse como algo más que un reconocedor de texto. La tabla de símbolos permitió verificar si un nombre ya había sido declarado y guardar la información necesaria para saber si un identificador pertenecía a una variable, una función o una estructura.
 
 \subsection{Información registrada}
 \begin{itemize}[label={-}]
@@ -266,6 +300,10 @@ void addSymbol(char* name, char* type, char* category)
 \section{Código intermedio de tres direcciones}
 La generación de código intermedio se implementó en formato de tres direcciones, que es una representación muy útil para optimización y para la traducción posterior a código final.
 
+Esta parte fue de las más importantes del proyecto porque permitió separar la lógica del lenguaje de la forma final de salida. En vez de traducir directamente a ensamblador, primero se obtuvo una representación intermedia más limpia y fácil de revisar.
+
+En este punto también se notó que el diseño del compilador quedaba mucho más claro: cada operación compleja se descompone en pasos pequeños y cada bloque de control se convierte en saltos y etiquetas que sí pueden analizarse de forma local.
+
 \subsection{Características}
 La salida usa:
 \begin{itemize}[label={-}]
@@ -289,11 +327,17 @@ L2:
 \subsection{Ventaja de esta representación}
 El formato de tres direcciones simplifica el análisis posterior porque descompone expresiones complejas en instrucciones elementales. Esto permite aplicar optimizaciones locales y facilita la traducción a una máquina virtual o a un ensamblador simple.
 
+Además, el formato hace más visible lo que hace el compilador internamente. Una expresión larga ya no aparece como una sola línea difícil de interpretar; ahora se ve en pasos intermedios con los que resulta más sencillo depurar y comparar resultados.
+
 \section{Optimización básica}
 Para mejorar el intermedio se implementaron optimizaciones locales sencillas.
 
+La optimización no buscó construir un optimizador avanzado, sino limpiar las salidas más obvias y mostrar que el compilador sí hace un trabajo adicional sobre el código generado. Se trabajó sobre el texto intermedio ya producido, lo que permitió probar mejoras sin complicar la gramática.
+
 \subsection{Propagación de constantes}
 Si una variable recibe un valor constante, ese valor puede reutilizarse en instrucciones posteriores. Por ejemplo, una expresión como \texttt{a = 2; b = a;} puede reducirse a \texttt{b = 2}.
+
+En las pruebas esto ayudó bastante porque varios programas usaban constantes encadenadas. La propagación permitió eliminar dependencias innecesarias y dejó el resultado más compacto.
 
 \subsection{Plegado de constantes}
 Las operaciones entre literales se calculan en tiempo de compilación. Por ejemplo:
@@ -304,6 +348,8 @@ t1 = 2 + 3   ->   t1 = 5
 \subsection{Eliminación de código muerto}
 Cuando se detecta un \texttt{goto} o un \texttt{return}, el código intermedio posterior puede descartarse si ya no es alcanzable. Esto evita generar instrucciones inútiles.
 
+Este punto resolvió uno de los comportamientos que más se notaban al probar el compilador: después de un retorno seguían apareciendo instrucciones que ya no iban a ejecutarse. Al corregirlo, la salida final quedó más limpia y más coherente.
+
 \subsection{Mejora de temporales}
 También se reducen copias innecesarias, evitando secuencias redundantes como:
 \begin{lstlisting}[language={}, caption={Temporal redundante}]
@@ -312,8 +358,12 @@ c = t1
 \end{lstlisting}
 cuando se puede emitir directamente una instrucción final más compacta.
 
+La idea aquí fue que el código final no quedara lleno de pasos que no aportan mucho. No se implementó una optimización pesada, pero sí lo suficiente para que la diferencia entre la versión normal y la optimizada fuera visible.
+
 \section{Código final}
 El código final se genera a partir del intermedio optimizado y se traduce a un pseudocódigo de ensamblador simple. Este paso no busca emular una arquitectura real completa, sino representar de forma clara la ejecución de instrucciones elementales.
+
+La salida final se diseñó para que se entendiera fácilmente cómo se mueve la información. Por eso se usó un ensamblador simplificado y no un formato de arquitectura real con pila, registros físicos o convenciones de llamada completas.
 
 \subsection{Mapeo de instrucciones}
 \begin{itemize}[label={-}]
@@ -343,6 +393,8 @@ helper ENDP
 \subsection{Comentario técnico}
 La salida final es adecuada para una máquina virtual simple o para una evaluación académica del proceso de compilación. No sustituye una arquitectura con administración de registros, pila y convenciones de llamada completas, pero cumple con el objetivo de mostrar una traducción clara y consistente.
 
+Durante la implementación se fueron corrigiendo detalles como etiquetas vacías, saltos redundantes y copias intermedias innecesarias. Esos ajustes no cambian la lógica del programa, pero sí hacen que el resultado final se vea mejor y más profesional.
+
 \section{Pruebas}
 Se probaron múltiples programas con combinaciones de variables, funciones, condicionales, ciclos y expresiones booleanas. Estas pruebas permitieron verificar:
 \begin{itemize}[label={-}]
@@ -362,6 +414,169 @@ Se probaron múltiples programas con combinaciones de variables, funciones, cond
     \item Llamadas a funciones: \texttt{helper()}
 \end{itemize}
 
+También se usaron programas más largos para verificar que el compilador mantuviera el orden correcto entre funciones, declaraciones y estructuras de control. Esos casos fueron útiles porque hicieron aparecer errores que no se veían en ejemplos demasiado pequeños.
+
+\subsection{Pruebas realizadas}
+Las siguientes pruebas se tomaron directamente de los archivos de entrada que se fueron usando durante el desarrollo.
+
+\paragraph{Prueba 1: estructuras de control, tablas y casos.}
+\begin{lstlisting}[language=C, caption={Contenido de input.txt}]
+int a = 0;
+int b;
+float c_10 = 100;
+char op = 'a';
+
+100 + 100;
+100;
+
+a;
+
+int i;
+int c;
+
+do
+{
+    for(i = 0; i < 100; i + 99)
+    {
+        
+    }
+}
+while(i > 10);
+
+struct MyStruct
+{
+    int var1;
+    float var2;
+    char var3;
+    int o;
+};
+\end{lstlisting}
+
+Esta prueba fue útil para verificar que el compilador pudiera manejar declaraciones sueltas, ciclos anidados, estructuras y expresiones que no necesariamente estaban ligadas a una asignación. También ayudó a revisar que la tabla de símbolos registrara correctamente variables y tipos.
+
+\paragraph{Prueba 2: expresiones booleanas y precedencia.}
+\begin{lstlisting}[language=C, caption={Contenido de input1.txt}]
+int maxKeyframes = 100;
+int currentFrame = 0;
+float rotationSpeed = 2.5;
+
+bool isShipActive = true;
+bool hasCollided = false;
+bool renderTorus = true;
+
+float newPosition = currentFrame + rotationSpeed * maxKeyframes - 10 / 2;
+float offsetPosition = (currentFrame + rotationSpeed) * maxKeyframes;
+
+if (currentFrame < maxKeyframes && isShipActive == true || !renderTorus) 
+{
+    currentFrame++;
+} 
+else if (hasCollided || currentFrame >= 10 && renderTorus) 
+{
+    isShipActive = false;
+}
+\end{lstlisting}
+
+Esta prueba sirvió para revisar la precedencia entre operadores aritméticos, relacionales y lógicos. También fue útil para comprobar que el parser respetara la agrupación correcta entre \texttt{&&}, \texttt{||} y \texttt{!}.
+
+\paragraph{Prueba 3: funciones, I/O y retornos.}
+\begin{lstlisting}[language=C, caption={Contenido de input2.txt}]
+int maxFrames = 60;
+int currentFrame = 0;
+bool engineReady = false;
+int shipVelocity;
+
+void initGraphicsEngine()
+{
+    engineReady = true;
+    print(engineReady);
+    return;
+}
+
+int getShipSpeed()
+{
+    int inputSpeed;
+    
+    read(inputSpeed);
+    
+    if (inputSpeed < 0)
+    {
+        return 0;
+    }
+    
+    return inputSpeed * 2;
+}
+\end{lstlisting}
+
+Esta prueba fue importante porque mezcló funciones con valor de retorno, lectura por teclado, impresión y regresos explícitos. También ayudó a detectar detalles de traducción cuando se devolvía una expresión y no solo un valor vacío.
+
+\paragraph{Prueba 4: optimización y salida final.}
+\begin{lstlisting}[language=C, caption={Contenido de input3.txt}]
+int helper()
+{
+    return 4;
+}
+
+int main()
+{
+    int a = 2;
+    int b = 3;
+    int c = a + b;
+    int d = c * 4;
+    bool flag = true;
+
+    print(d);
+
+    if (1 && 0 || !0)
+    {
+        d = d + 0;
+        a = a * 1;
+    }
+    else
+    {
+        d = 99;
+    }
+
+    while (0)
+    {
+        a = a + 1;
+        d = d + 2;
+    };
+
+    do
+    {
+        b = b + 1;
+    }
+    while (false);
+
+    c = helper();
+    print(c);
+
+    return d;
+    a = 100;
+}
+\end{lstlisting}
+
+Esta fue la prueba más completa, porque reunió constantes, expresiones booleanas, ciclos, llamadas a funciones y código muerto después de un retorno. Fue la que mejor permitió comprobar si la parte de optimización y el código final realmente estaban funcionando.
+
+\subsection{Archivos generados por el compilador}
+Durante la ejecución del proyecto, el compilador exportó varios archivos de texto para revisar cada etapa por separado:
+\begin{itemize}[label={-}]
+    \item \texttt{tokens.txt}, con la lista de tokens reconocidos.
+    \item \texttt{table.txt}, con tablas auxiliares de tokens y clasificaciones.
+    \item \texttt{tabla\_simbolos.txt}, con las variables y funciones registradas.
+    \item \texttt{codigo\_intermedio.txt}, con la salida de tres direcciones.
+    \item \texttt{codigo\_intermedio\_optimizado.txt}, con la versión mejorada del intermedio.
+    \item \texttt{codigo\_final.txt}, con la traducción a pseudocódigo de ensamblador simple.
+\end{itemize}
+
+Tener estos archivos separados fue útil porque permitió revisar cada etapa sin mezclar todo en una sola salida. Así se hizo más fácil comparar el código original, el intermedio, la versión optimizada y la traducción final.
+
+\subsection{Resolución de problemas durante las pruebas}
+Las pruebas fueron una parte clave del trabajo. Ahí salieron varios detalles que no se notaban al revisar el código a simple vista. Por ejemplo, algunas reglas de la gramática dejaban una construcción con un símbolo extra al final, y en otras ocasiones la salida generada tenía instrucciones redundantes después de un salto o un retorno.
+
+La solución fue ir corrigiendo cada etapa por separado: primero el lexer, luego el parser, después el intermedio y al final la traducción a código final. Esa forma de trabajo hizo posible localizar los errores sin perder tiempo buscando en todo el proyecto a la vez.
+
 \section{Resultados obtenidos}
 Los resultados obtenidos muestran que el compilador cumple los objetivos centrales planteados al inicio del proyecto:
 \begin{itemize}[label={-}]
@@ -375,7 +590,9 @@ Los resultados obtenidos muestran que el compilador cumple los objetivos central
 \section{Conclusiones}
 El proyecto permitió integrar varias fases del proceso de compilación en una sola herramienta funcional. Aunque la implementación es académica y simplificada, cubre los lineamientos fundamentales del curso: análisis léxico, análisis sintáctico, traducción dirigida por la sintaxis, generación de intermedio, optimización básica y código final.
 
-Como mejora futura se podría implementar manejo de parámetros en funciones, recursividad, un sistema de tipos más riguroso y una máquina virtual que ejecute directamente el código generado.
+Durante el desarrollo se notó que una buena parte del trabajo real no está solo en hacer que el compilador funcione, sino en ir puliendo detalles: conflictos de gramática, mensajes de error, salida redundante y pruebas que obligan a corregir casos especiales. Justamente por eso el proyecto termina siendo útil para entender cómo se conectan todas las fases de un compilador.
+
+Como mejora futura se podría implementar manejo de parámetros en funciones, recursividad, un sistema de tipos más riguroso y una máquina virtual que ejecute directamente el código generado. También sería buena idea añadir optimizaciones más fuertes para compactar todavía más el código final.
 
 \section{Tecnologías utilizadas}
 \begin{itemize}[label={-}]
