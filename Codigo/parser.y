@@ -84,6 +84,7 @@ int isConstantAtom(const char *text);
 int evaluateUnaryNot(const char *text, char *buffer, size_t size);
 int evaluateBinary(const char *leftText, const char *op, const char *rightText, char *buffer, size_t size);
 char *optimizeIntermediateCodeText(const char *source);
+char *generateFinalCodeText(const char *source);
 
 void clearConstants()
 {
@@ -464,7 +465,7 @@ char *optimizeIntermediateCodeText(const char *source)
             }
         }
 
-        if(strcmp(trimmed, "return") == 0)
+        if(strncmp(trimmed, "return", 6) == 0)
         {
             if(strlen(result) + strlen(trimmed) + 2 >= capacity)
             {
@@ -511,11 +512,12 @@ char *optimizeIntermediateCodeText(const char *source)
             if(sscanf(trimmed, "%15s %63s goto %63s", keyword, operand, label) == 3)
             {
                 const char *constant = lookupConstantValue(operand);
-                if(constant != NULL)
+                const char *resolvedOperand = constant != NULL ? constant : operand;
+                if(isConstantAtom(resolvedOperand))
                 {
                     if(strcmp(keyword, "ifFalse") == 0)
                     {
-                        if(strcmp(constant, "0") == 0 || strcmp(constant, "false") == 0)
+                        if(strcmp(resolvedOperand, "0") == 0 || strcmp(resolvedOperand, "false") == 0)
                         {
                             snprintf(trimmed, 128, "goto %s", label);
                         }
@@ -526,7 +528,7 @@ char *optimizeIntermediateCodeText(const char *source)
                     }
                     else if(strcmp(keyword, "if") == 0)
                     {
-                        if(strcmp(constant, "0") == 0 || strcmp(constant, "false") == 0)
+                        if(strcmp(resolvedOperand, "0") == 0 || strcmp(resolvedOperand, "false") == 0)
                         {
                             trimmed[0] = '\0';
                         }
@@ -647,6 +649,283 @@ char *optimizeIntermediateCodeText(const char *source)
         if(strncmp(trimmed, "goto ", 5) == 0)
         {
             skippingDeadCode = 1;
+        }
+
+        line = nextLineToken(&cursor);
+    }
+
+    free(working);
+    return result;
+}
+
+int isArithmeticOperator(const char *op)
+{
+    return strcmp(op, "+") == 0 ||
+           strcmp(op, "-") == 0 ||
+           strcmp(op, "*") == 0 ||
+           strcmp(op, "/") == 0;
+}
+
+int isComparisonOperator(const char *op)
+{
+    return strcmp(op, "<") == 0 ||
+           strcmp(op, ">") == 0 ||
+           strcmp(op, "<=") == 0 ||
+           strcmp(op, ">=") == 0 ||
+           strcmp(op, "==") == 0;
+}
+
+int isLogicalOperator(const char *op)
+{
+    return strcmp(op, "&&") == 0 || strcmp(op, "||") == 0;
+}
+
+int isLabelLine(const char *line)
+{
+    size_t length;
+
+    if(line == NULL)
+    {
+        return 0;
+    }
+
+    length = strlen(line);
+    return length > 1 && line[0] == 'L' && line[length - 1] == ':';
+}
+
+int labelIsReferenced(const char *source, const char *label)
+{
+    char *pattern;
+    int referenced;
+
+    if(source == NULL || label == NULL)
+    {
+        return 0;
+    }
+
+    pattern = formatText("goto %s", label);
+    referenced = strstr(source, pattern) != NULL;
+    free(pattern);
+    return referenced;
+}
+
+const char *assemblyMnemonicForOperator(const char *op)
+{
+    if(strcmp(op, "+") == 0)
+    {
+        return "ADD";
+    }
+    if(strcmp(op, "-") == 0)
+    {
+        return "SUB";
+    }
+    if(strcmp(op, "*") == 0)
+    {
+        return "MUL";
+    }
+    if(strcmp(op, "/") == 0)
+    {
+        return "DIV";
+    }
+    if(strcmp(op, "<") == 0)
+    {
+        return "LT";
+    }
+    if(strcmp(op, ">") == 0)
+    {
+        return "GT";
+    }
+    if(strcmp(op, "<=") == 0)
+    {
+        return "LE";
+    }
+    if(strcmp(op, ">=") == 0)
+    {
+        return "GE";
+    }
+    if(strcmp(op, "==") == 0)
+    {
+        return "EQ";
+    }
+    if(strcmp(op, "&&") == 0)
+    {
+        return "AND";
+    }
+    if(strcmp(op, "||") == 0)
+    {
+        return "OR";
+    }
+
+    return "OP";
+}
+
+char *generateFinalCodeText(const char *source)
+{
+    if(source == NULL || source[0] == '\0')
+    {
+        return dupText("");
+    }
+
+    char *working = dupText(source);
+    size_t capacity = strlen(source) * 3 + 512;
+    char *result = (char *)malloc(capacity);
+    if(result == NULL)
+    {
+        printf("Error de memoria al generar codigo final\n");
+        exit(1);
+    }
+
+    result[0] = '\0';
+
+    char *cursor = working;
+    char *line = nextLineToken(&cursor);
+    char pendingCallTemp[64];
+    int hasPendingCallTemp = 0;
+
+    pendingCallTemp[0] = '\0';
+
+    while(line != NULL)
+    {
+        char *trimmed = line;
+        while(*trimmed != '\0' && isspace((unsigned char)*trimmed))
+        {
+            trimmed++;
+        }
+
+        size_t trimmedLength = strlen(trimmed);
+        while(trimmedLength > 0 && isspace((unsigned char)trimmed[trimmedLength - 1]))
+        {
+            trimmed[trimmedLength - 1] = '\0';
+            trimmedLength--;
+        }
+
+        if(trimmed[0] == '\0')
+        {
+            line = nextLineToken(&cursor);
+            continue;
+        }
+
+        if(isLabelLine(trimmed))
+        {
+            char labelName[64];
+
+            if(sscanf(trimmed, "%63[^:]:", labelName) == 1 && !labelIsReferenced(source, labelName))
+            {
+                line = nextLineToken(&cursor);
+                continue;
+            }
+        }
+
+        char assembledLine[256];
+        assembledLine[0] = '\0';
+
+        char name[64];
+        char type[64];
+        char arg1[64];
+        char arg2[64];
+        char arg3[64];
+
+        if(sscanf(trimmed, "function %63s %63s begin", name, type) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "%s PROC ; %s\n", name, type);
+        }
+        else if(sscanf(trimmed, "end function %63s", name) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "%s ENDP\n", name);
+        }
+        else if(strchr(trimmed, ':') != NULL && trimmed[strlen(trimmed) - 1] == ':')
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "%s\n", trimmed);
+        }
+        else if(sscanf(trimmed, "goto %63s", name) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "JMP %s\n", name);
+        }
+        else if(sscanf(trimmed, "ifFalse %63s goto %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "JZ %s, %s\n", arg1, arg2);
+        }
+        else if(sscanf(trimmed, "if %63s goto %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "JNZ %s, %s\n", arg1, arg2);
+        }
+        else if(sscanf(trimmed, "print %63s", arg1) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "PRINT %s\n", arg1);
+        }
+        else if(sscanf(trimmed, "read %63s", arg1) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "READ %s\n", arg1);
+        }
+        else if(sscanf(trimmed, "return %63s", arg1) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "RET %s\n", arg1);
+        }
+        else if(strcmp(trimmed, "return") == 0)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "RET\n");
+        }
+        else if(sscanf(trimmed, "%63s = call %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "CALL %s\n", arg2);
+            snprintf(pendingCallTemp, sizeof(pendingCallTemp), "%s", arg1);
+            hasPendingCallTemp = 1;
+        }
+        else if(sscanf(trimmed, "%63s = ! %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "NOT %s, %s\n", arg1, arg2);
+        }
+        else if(sscanf(trimmed, "%63s = %63s %63s %63s", arg1, arg2, arg3, name) == 4)
+        {
+            if(isArithmeticOperator(arg3) || isComparisonOperator(arg3) || isLogicalOperator(arg3))
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "%s %s, %s, %s\n", assemblyMnemonicForOperator(arg3), arg1, arg2, name);
+            }
+            else
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "MOV %s, %s\n", arg1, arg2);
+            }
+        }
+        else if(sscanf(trimmed, "%63s = %63s", arg1, arg2) == 2)
+        {
+            if(hasPendingCallTemp && strcmp(arg2, pendingCallTemp) == 0)
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "MOV %s, R0\n", arg1);
+                hasPendingCallTemp = 0;
+                pendingCallTemp[0] = '\0';
+            }
+            else
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "MOV %s, %s\n", arg1, arg2);
+                hasPendingCallTemp = 0;
+                pendingCallTemp[0] = '\0';
+            }
+        }
+        else
+        {
+            hasPendingCallTemp = 0;
+            pendingCallTemp[0] = '\0';
+        }
+
+        if(assembledLine[0] != '\0')
+        {
+            size_t needed = strlen(result) + strlen(assembledLine) + 1;
+            if(needed >= capacity)
+            {
+                while(needed >= capacity)
+                {
+                    capacity *= 2;
+                }
+
+                result = (char *)realloc(result, capacity);
+                if(result == NULL)
+                {
+                    printf("Error de memoria al ampliar codigo final\n");
+                    exit(1);
+                }
+            }
+
+            strcat(result, assembledLine);
         }
 
         line = nextLineToken(&cursor);
@@ -852,6 +1131,27 @@ void writeOptimizedIntermediateCode()
     fclose(file);
 
     printf("[Info] Codigo intermedio optimizado guardado en 'codigo_intermedio_optimizado.txt'\n");
+}
+
+void writeFinalCode()
+{
+    char *source = optimizedCode != NULL ? optimizedCode : generatedCode;
+    char *finalCode = generateFinalCodeText(source);
+
+    FILE *file = fopen("codigo_final.txt", "w");
+
+    if(file == NULL)
+    {
+        printf("Error: No se pudo crear el archivo de codigo final.\n");
+        free(finalCode);
+        return;
+    }
+
+    fprintf(file, "%s", finalCode != NULL ? finalCode : "");
+    fclose(file);
+    free(finalCode);
+
+    printf("[Info] Codigo final guardado en 'codigo_final.txt'\n");
 }
 %}
 
@@ -1374,6 +1674,7 @@ int main(int argc, char *argv[]) {
         writeSymbolTableToFile();
         writeIntermediateCode();
         writeOptimizedIntermediateCode();
+        writeFinalCode();
         writeTokenTypes();
         writeTokenTable();
         clearMemoryAllocation();

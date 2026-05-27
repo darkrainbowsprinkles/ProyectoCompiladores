@@ -150,6 +150,7 @@ int isConstantAtom(const char *text);
 int evaluateUnaryNot(const char *text, char *buffer, size_t size);
 int evaluateBinary(const char *leftText, const char *op, const char *rightText, char *buffer, size_t size);
 char *optimizeIntermediateCodeText(const char *source);
+char *generateFinalCodeText(const char *source);
 
 void clearConstants()
 {
@@ -530,7 +531,7 @@ char *optimizeIntermediateCodeText(const char *source)
             }
         }
 
-        if(strcmp(trimmed, "return") == 0)
+        if(strncmp(trimmed, "return", 6) == 0)
         {
             if(strlen(result) + strlen(trimmed) + 2 >= capacity)
             {
@@ -577,11 +578,12 @@ char *optimizeIntermediateCodeText(const char *source)
             if(sscanf(trimmed, "%15s %63s goto %63s", keyword, operand, label) == 3)
             {
                 const char *constant = lookupConstantValue(operand);
-                if(constant != NULL)
+                const char *resolvedOperand = constant != NULL ? constant : operand;
+                if(isConstantAtom(resolvedOperand))
                 {
                     if(strcmp(keyword, "ifFalse") == 0)
                     {
-                        if(strcmp(constant, "0") == 0 || strcmp(constant, "false") == 0)
+                        if(strcmp(resolvedOperand, "0") == 0 || strcmp(resolvedOperand, "false") == 0)
                         {
                             snprintf(trimmed, 128, "goto %s", label);
                         }
@@ -592,7 +594,7 @@ char *optimizeIntermediateCodeText(const char *source)
                     }
                     else if(strcmp(keyword, "if") == 0)
                     {
-                        if(strcmp(constant, "0") == 0 || strcmp(constant, "false") == 0)
+                        if(strcmp(resolvedOperand, "0") == 0 || strcmp(resolvedOperand, "false") == 0)
                         {
                             trimmed[0] = '\0';
                         }
@@ -713,6 +715,283 @@ char *optimizeIntermediateCodeText(const char *source)
         if(strncmp(trimmed, "goto ", 5) == 0)
         {
             skippingDeadCode = 1;
+        }
+
+        line = nextLineToken(&cursor);
+    }
+
+    free(working);
+    return result;
+}
+
+int isArithmeticOperator(const char *op)
+{
+    return strcmp(op, "+") == 0 ||
+           strcmp(op, "-") == 0 ||
+           strcmp(op, "*") == 0 ||
+           strcmp(op, "/") == 0;
+}
+
+int isComparisonOperator(const char *op)
+{
+    return strcmp(op, "<") == 0 ||
+           strcmp(op, ">") == 0 ||
+           strcmp(op, "<=") == 0 ||
+           strcmp(op, ">=") == 0 ||
+           strcmp(op, "==") == 0;
+}
+
+int isLogicalOperator(const char *op)
+{
+    return strcmp(op, "&&") == 0 || strcmp(op, "||") == 0;
+}
+
+int isLabelLine(const char *line)
+{
+    size_t length;
+
+    if(line == NULL)
+    {
+        return 0;
+    }
+
+    length = strlen(line);
+    return length > 1 && line[0] == 'L' && line[length - 1] == ':';
+}
+
+int labelIsReferenced(const char *source, const char *label)
+{
+    char *pattern;
+    int referenced;
+
+    if(source == NULL || label == NULL)
+    {
+        return 0;
+    }
+
+    pattern = formatText("goto %s", label);
+    referenced = strstr(source, pattern) != NULL;
+    free(pattern);
+    return referenced;
+}
+
+const char *assemblyMnemonicForOperator(const char *op)
+{
+    if(strcmp(op, "+") == 0)
+    {
+        return "ADD";
+    }
+    if(strcmp(op, "-") == 0)
+    {
+        return "SUB";
+    }
+    if(strcmp(op, "*") == 0)
+    {
+        return "MUL";
+    }
+    if(strcmp(op, "/") == 0)
+    {
+        return "DIV";
+    }
+    if(strcmp(op, "<") == 0)
+    {
+        return "LT";
+    }
+    if(strcmp(op, ">") == 0)
+    {
+        return "GT";
+    }
+    if(strcmp(op, "<=") == 0)
+    {
+        return "LE";
+    }
+    if(strcmp(op, ">=") == 0)
+    {
+        return "GE";
+    }
+    if(strcmp(op, "==") == 0)
+    {
+        return "EQ";
+    }
+    if(strcmp(op, "&&") == 0)
+    {
+        return "AND";
+    }
+    if(strcmp(op, "||") == 0)
+    {
+        return "OR";
+    }
+
+    return "OP";
+}
+
+char *generateFinalCodeText(const char *source)
+{
+    if(source == NULL || source[0] == '\0')
+    {
+        return dupText("");
+    }
+
+    char *working = dupText(source);
+    size_t capacity = strlen(source) * 3 + 512;
+    char *result = (char *)malloc(capacity);
+    if(result == NULL)
+    {
+        printf("Error de memoria al generar codigo final\n");
+        exit(1);
+    }
+
+    result[0] = '\0';
+
+    char *cursor = working;
+    char *line = nextLineToken(&cursor);
+    char pendingCallTemp[64];
+    int hasPendingCallTemp = 0;
+
+    pendingCallTemp[0] = '\0';
+
+    while(line != NULL)
+    {
+        char *trimmed = line;
+        while(*trimmed != '\0' && isspace((unsigned char)*trimmed))
+        {
+            trimmed++;
+        }
+
+        size_t trimmedLength = strlen(trimmed);
+        while(trimmedLength > 0 && isspace((unsigned char)trimmed[trimmedLength - 1]))
+        {
+            trimmed[trimmedLength - 1] = '\0';
+            trimmedLength--;
+        }
+
+        if(trimmed[0] == '\0')
+        {
+            line = nextLineToken(&cursor);
+            continue;
+        }
+
+        if(isLabelLine(trimmed))
+        {
+            char labelName[64];
+
+            if(sscanf(trimmed, "%63[^:]:", labelName) == 1 && !labelIsReferenced(source, labelName))
+            {
+                line = nextLineToken(&cursor);
+                continue;
+            }
+        }
+
+        char assembledLine[256];
+        assembledLine[0] = '\0';
+
+        char name[64];
+        char type[64];
+        char arg1[64];
+        char arg2[64];
+        char arg3[64];
+
+        if(sscanf(trimmed, "function %63s %63s begin", name, type) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "%s PROC ; %s\n", name, type);
+        }
+        else if(sscanf(trimmed, "end function %63s", name) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "%s ENDP\n", name);
+        }
+        else if(strchr(trimmed, ':') != NULL && trimmed[strlen(trimmed) - 1] == ':')
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "%s\n", trimmed);
+        }
+        else if(sscanf(trimmed, "goto %63s", name) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "JMP %s\n", name);
+        }
+        else if(sscanf(trimmed, "ifFalse %63s goto %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "JZ %s, %s\n", arg1, arg2);
+        }
+        else if(sscanf(trimmed, "if %63s goto %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "JNZ %s, %s\n", arg1, arg2);
+        }
+        else if(sscanf(trimmed, "print %63s", arg1) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "PRINT %s\n", arg1);
+        }
+        else if(sscanf(trimmed, "read %63s", arg1) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "READ %s\n", arg1);
+        }
+        else if(sscanf(trimmed, "return %63s", arg1) == 1)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "RET %s\n", arg1);
+        }
+        else if(strcmp(trimmed, "return") == 0)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "RET\n");
+        }
+        else if(sscanf(trimmed, "%63s = call %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "CALL %s\n", arg2);
+            snprintf(pendingCallTemp, sizeof(pendingCallTemp), "%s", arg1);
+            hasPendingCallTemp = 1;
+        }
+        else if(sscanf(trimmed, "%63s = ! %63s", arg1, arg2) == 2)
+        {
+            snprintf(assembledLine, sizeof(assembledLine), "NOT %s, %s\n", arg1, arg2);
+        }
+        else if(sscanf(trimmed, "%63s = %63s %63s %63s", arg1, arg2, arg3, name) == 4)
+        {
+            if(isArithmeticOperator(arg3) || isComparisonOperator(arg3) || isLogicalOperator(arg3))
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "%s %s, %s, %s\n", assemblyMnemonicForOperator(arg3), arg1, arg2, name);
+            }
+            else
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "MOV %s, %s\n", arg1, arg2);
+            }
+        }
+        else if(sscanf(trimmed, "%63s = %63s", arg1, arg2) == 2)
+        {
+            if(hasPendingCallTemp && strcmp(arg2, pendingCallTemp) == 0)
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "MOV %s, R0\n", arg1);
+                hasPendingCallTemp = 0;
+                pendingCallTemp[0] = '\0';
+            }
+            else
+            {
+                snprintf(assembledLine, sizeof(assembledLine), "MOV %s, %s\n", arg1, arg2);
+                hasPendingCallTemp = 0;
+                pendingCallTemp[0] = '\0';
+            }
+        }
+        else
+        {
+            hasPendingCallTemp = 0;
+            pendingCallTemp[0] = '\0';
+        }
+
+        if(assembledLine[0] != '\0')
+        {
+            size_t needed = strlen(result) + strlen(assembledLine) + 1;
+            if(needed >= capacity)
+            {
+                while(needed >= capacity)
+                {
+                    capacity *= 2;
+                }
+
+                result = (char *)realloc(result, capacity);
+                if(result == NULL)
+                {
+                    printf("Error de memoria al ampliar codigo final\n");
+                    exit(1);
+                }
+            }
+
+            strcat(result, assembledLine);
         }
 
         line = nextLineToken(&cursor);
@@ -920,8 +1199,29 @@ void writeOptimizedIntermediateCode()
     printf("[Info] Codigo intermedio optimizado guardado en 'codigo_intermedio_optimizado.txt'\n");
 }
 
+void writeFinalCode()
+{
+    char *source = optimizedCode != NULL ? optimizedCode : generatedCode;
+    char *finalCode = generateFinalCodeText(source);
+
+    FILE *file = fopen("codigo_final.txt", "w");
+
+    if(file == NULL)
+    {
+        printf("Error: No se pudo crear el archivo de codigo final.\n");
+        free(finalCode);
+        return;
+    }
+
+    fprintf(file, "%s", finalCode != NULL ? finalCode : "");
+    fclose(file);
+    free(finalCode);
+
+    printf("[Info] Codigo final guardado en 'codigo_final.txt'\n");
+}
+
 /* Line 371 of yacc.c  */
-#line 925 "y.tab.c"
+#line 1225 "y.tab.c"
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -1051,7 +1351,7 @@ extern int yydebug;
 typedef union YYSTYPE
 {
 /* Line 387 of yacc.c  */
-#line 858 "parser.y"
+#line 1158 "parser.y"
 
     char* string_val;
     ExprAttr* expr;
@@ -1061,7 +1361,7 @@ typedef union YYSTYPE
 
 
 /* Line 387 of yacc.c  */
-#line 1065 "y.tab.c"
+#line 1365 "y.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -1089,7 +1389,7 @@ int yyparse ();
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 1093 "y.tab.c"
+#line 1393 "y.tab.c"
 
 #ifdef short
 # undef short
@@ -1407,13 +1707,13 @@ static const yytype_int8 yyrhs[] =
 /* YYRLINE[YYN] -- source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,   923,   923,   927,   935,   939,   943,   948,   952,   957,
-     961,   965,   969,   973,   977,   981,   985,   989,   995,   999,
-    1004,  1010,  1017,  1026,  1037,  1053,  1059,  1069,  1082,  1097,
-    1103,  1118,  1131,  1143,  1146,  1151,  1160,  1167,  1179,  1182,
-    1192,  1198,  1202,  1211,  1220,  1229,  1238,  1247,  1256,  1265,
-    1273,  1279,  1280,  1281,  1282,  1285,  1289,  1293,  1297,  1301,
-    1305,  1309,  1317,  1325
+       0,  1223,  1223,  1227,  1235,  1239,  1243,  1248,  1252,  1257,
+    1261,  1265,  1269,  1273,  1277,  1281,  1285,  1289,  1295,  1299,
+    1304,  1310,  1317,  1326,  1337,  1353,  1359,  1369,  1382,  1397,
+    1403,  1418,  1431,  1443,  1446,  1451,  1460,  1467,  1479,  1482,
+    1492,  1498,  1502,  1511,  1520,  1529,  1538,  1547,  1556,  1565,
+    1573,  1579,  1580,  1581,  1582,  1585,  1589,  1593,  1597,  1601,
+    1605,  1609,  1617,  1625
 };
 #endif
 
@@ -2432,7 +2732,7 @@ yyreduce:
     {
         case 2:
 /* Line 1792 of yacc.c  */
-#line 923 "parser.y"
+#line 1223 "parser.y"
     {
         (yyval.code) = makeCodeAttr("");
         generatedCode = dupText("");
@@ -2441,7 +2741,7 @@ yyreduce:
 
   case 3:
 /* Line 1792 of yacc.c  */
-#line 928 "parser.y"
+#line 1228 "parser.y"
     {
         char *code = joinTexts(2, (yyvsp[(1) - (2)].code)->code, (yyvsp[(2) - (2)].code)->code);
         (yyval.code) = makeCodeAttr(code);
@@ -2451,7 +2751,7 @@ yyreduce:
 
   case 4:
 /* Line 1792 of yacc.c  */
-#line 936 "parser.y"
+#line 1236 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (2)].code);
     }
@@ -2459,7 +2759,7 @@ yyreduce:
 
   case 5:
 /* Line 1792 of yacc.c  */
-#line 940 "parser.y"
+#line 1240 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (1)].code);
     }
@@ -2467,7 +2767,7 @@ yyreduce:
 
   case 6:
 /* Line 1792 of yacc.c  */
-#line 944 "parser.y"
+#line 1244 "parser.y"
     {
         char *code = joinTexts(2, (yyvsp[(2) - (3)].expr)->code, formatText("return %s\n", (yyvsp[(2) - (3)].expr)->place));
         (yyval.code) = makeCodeAttr(code);
@@ -2476,7 +2776,7 @@ yyreduce:
 
   case 7:
 /* Line 1792 of yacc.c  */
-#line 949 "parser.y"
+#line 1249 "parser.y"
     {
         (yyval.code) = makeCodeAttr("return\n");
     }
@@ -2484,7 +2784,7 @@ yyreduce:
 
   case 8:
 /* Line 1792 of yacc.c  */
-#line 953 "parser.y"
+#line 1253 "parser.y"
     {
         char *code = joinTexts(2, (yyvsp[(3) - (5)].expr)->code, formatText("print %s\n", (yyvsp[(3) - (5)].expr)->place));
         (yyval.code) = makeCodeAttr(code);
@@ -2493,7 +2793,7 @@ yyreduce:
 
   case 9:
 /* Line 1792 of yacc.c  */
-#line 958 "parser.y"
+#line 1258 "parser.y"
     {
         (yyval.code) = makeCodeAttr(formatText("read %s\n", (yyvsp[(3) - (5)].string_val)));
     }
@@ -2501,7 +2801,7 @@ yyreduce:
 
   case 10:
 /* Line 1792 of yacc.c  */
-#line 962 "parser.y"
+#line 1262 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (1)].code);
     }
@@ -2509,7 +2809,7 @@ yyreduce:
 
   case 11:
 /* Line 1792 of yacc.c  */
-#line 966 "parser.y"
+#line 1266 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (1)].code);
     }
@@ -2517,7 +2817,7 @@ yyreduce:
 
   case 12:
 /* Line 1792 of yacc.c  */
-#line 970 "parser.y"
+#line 1270 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (1)].code);
     }
@@ -2525,7 +2825,7 @@ yyreduce:
 
   case 13:
 /* Line 1792 of yacc.c  */
-#line 974 "parser.y"
+#line 1274 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (2)].code);
     }
@@ -2533,7 +2833,7 @@ yyreduce:
 
   case 14:
 /* Line 1792 of yacc.c  */
-#line 978 "parser.y"
+#line 1278 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (2)].code);
     }
@@ -2541,7 +2841,7 @@ yyreduce:
 
   case 15:
 /* Line 1792 of yacc.c  */
-#line 982 "parser.y"
+#line 1282 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (1)].code);
     }
@@ -2549,7 +2849,7 @@ yyreduce:
 
   case 16:
 /* Line 1792 of yacc.c  */
-#line 986 "parser.y"
+#line 1286 "parser.y"
     {
         (yyval.code) = (yyvsp[(1) - (2)].code);
     }
@@ -2557,7 +2857,7 @@ yyreduce:
 
   case 17:
 /* Line 1792 of yacc.c  */
-#line 990 "parser.y"
+#line 1290 "parser.y"
     {
         (yyval.code) = makeCodeAttr("break\n");
     }
@@ -2565,7 +2865,7 @@ yyreduce:
 
   case 18:
 /* Line 1792 of yacc.c  */
-#line 996 "parser.y"
+#line 1296 "parser.y"
     {
         (yyval.code) = makeCodeAttr((yyvsp[(1) - (1)].expr)->code);
     }
@@ -2573,7 +2873,7 @@ yyreduce:
 
   case 19:
 /* Line 1792 of yacc.c  */
-#line 1000 "parser.y"
+#line 1300 "parser.y"
     {
         addSymbol((yyvsp[(2) - (2)].string_val), (yyvsp[(1) - (2)].string_val), "variable");
         (yyval.code) = makeCodeAttr(formatText("decl %s %s\n", (yyvsp[(1) - (2)].string_val), (yyvsp[(2) - (2)].string_val)));
@@ -2582,7 +2882,7 @@ yyreduce:
 
   case 20:
 /* Line 1792 of yacc.c  */
-#line 1005 "parser.y"
+#line 1305 "parser.y"
     {
         addSymbol((yyvsp[(2) - (4)].string_val), (yyvsp[(1) - (4)].string_val), "variable");
         char *code = joinTexts(2, (yyvsp[(4) - (4)].expr)->code, formatText("%s = %s\n", (yyvsp[(2) - (4)].string_val), (yyvsp[(4) - (4)].expr)->place));
@@ -2592,7 +2892,7 @@ yyreduce:
 
   case 21:
 /* Line 1792 of yacc.c  */
-#line 1011 "parser.y"
+#line 1311 "parser.y"
     {
         char *code = joinTexts(2, (yyvsp[(3) - (3)].expr)->code, formatText("%s = %s\n", (yyvsp[(1) - (3)].string_val), (yyvsp[(3) - (3)].expr)->place));
         (yyval.code) = makeCodeAttr(code);
@@ -2601,7 +2901,7 @@ yyreduce:
 
   case 22:
 /* Line 1792 of yacc.c  */
-#line 1018 "parser.y"
+#line 1318 "parser.y"
     {
         addSymbol((yyvsp[(2) - (5)].string_val), (yyvsp[(1) - (5)].string_val), "function");
         char *code = joinTexts(3,
@@ -2614,7 +2914,7 @@ yyreduce:
 
   case 23:
 /* Line 1792 of yacc.c  */
-#line 1027 "parser.y"
+#line 1327 "parser.y"
     {
         addSymbol((yyvsp[(2) - (5)].string_val), "void", "function");
         char *code = joinTexts(3,
@@ -2627,7 +2927,7 @@ yyreduce:
 
   case 24:
 /* Line 1792 of yacc.c  */
-#line 1038 "parser.y"
+#line 1338 "parser.y"
     {
         char *startLabel = newLabel();
         char *endLabel = newLabel();
@@ -2645,7 +2945,7 @@ yyreduce:
 
   case 25:
 /* Line 1792 of yacc.c  */
-#line 1054 "parser.y"
+#line 1354 "parser.y"
     {
         (yyval.forpart) = makeForAttr((yyvsp[(1) - (5)].code)->code, (yyvsp[(3) - (5)].expr)->code, (yyvsp[(3) - (5)].expr)->place, (yyvsp[(5) - (5)].expr)->code);
     }
@@ -2653,7 +2953,7 @@ yyreduce:
 
   case 26:
 /* Line 1792 of yacc.c  */
-#line 1060 "parser.y"
+#line 1360 "parser.y"
     {
         char *falseLabel = newLabel();
         char *code = joinTexts(4,
@@ -2667,7 +2967,7 @@ yyreduce:
 
   case 27:
 /* Line 1792 of yacc.c  */
-#line 1070 "parser.y"
+#line 1370 "parser.y"
     {
         char *falseLabel = newLabel();
         char *endLabel = newLabel();
@@ -2684,7 +2984,7 @@ yyreduce:
 
   case 28:
 /* Line 1792 of yacc.c  */
-#line 1083 "parser.y"
+#line 1383 "parser.y"
     {
         char *falseLabel = newLabel();
         char *endLabel = newLabel();
@@ -2701,7 +3001,7 @@ yyreduce:
 
   case 29:
 /* Line 1792 of yacc.c  */
-#line 1098 "parser.y"
+#line 1398 "parser.y"
     {
         (yyval.ifpart) = makeIfAttr((yyvsp[(3) - (5)].expr)->code, (yyvsp[(3) - (5)].expr)->place, (yyvsp[(5) - (5)].code)->code);
     }
@@ -2709,7 +3009,7 @@ yyreduce:
 
   case 30:
 /* Line 1792 of yacc.c  */
-#line 1104 "parser.y"
+#line 1404 "parser.y"
     {
         char *startLabel = newLabel();
         char *endLabel = newLabel();
@@ -2726,7 +3026,7 @@ yyreduce:
 
   case 31:
 /* Line 1792 of yacc.c  */
-#line 1119 "parser.y"
+#line 1419 "parser.y"
     {
         char *startLabel = newLabel();
         char *code = joinTexts(5,
@@ -2741,7 +3041,7 @@ yyreduce:
 
   case 32:
 /* Line 1792 of yacc.c  */
-#line 1132 "parser.y"
+#line 1432 "parser.y"
     {
         char *code = joinTexts(4,
                                (yyvsp[(3) - (7)].expr)->code,
@@ -2754,7 +3054,7 @@ yyreduce:
 
   case 33:
 /* Line 1792 of yacc.c  */
-#line 1143 "parser.y"
+#line 1443 "parser.y"
     {
         (yyval.code) = makeCodeAttr("");
     }
@@ -2762,7 +3062,7 @@ yyreduce:
 
   case 34:
 /* Line 1792 of yacc.c  */
-#line 1147 "parser.y"
+#line 1447 "parser.y"
     {
         char *code = joinTexts(2, (yyvsp[(1) - (2)].code)->code, (yyvsp[(2) - (2)].code)->code);
         (yyval.code) = makeCodeAttr(code);
@@ -2771,7 +3071,7 @@ yyreduce:
 
   case 35:
 /* Line 1792 of yacc.c  */
-#line 1152 "parser.y"
+#line 1452 "parser.y"
     {
         char *code = joinTexts(4,
                                formatText("case %s:\n", (yyvsp[(2) - (7)].expr)->place),
@@ -2784,7 +3084,7 @@ yyreduce:
 
   case 36:
 /* Line 1792 of yacc.c  */
-#line 1161 "parser.y"
+#line 1461 "parser.y"
     {
         char *code = joinTexts(2, "default:\n", (yyvsp[(3) - (5)].code)->code);
         (yyval.code) = makeCodeAttr(code);
@@ -2793,7 +3093,7 @@ yyreduce:
 
   case 37:
 /* Line 1792 of yacc.c  */
-#line 1168 "parser.y"
+#line 1468 "parser.y"
     {
         addSymbol((yyvsp[(2) - (5)].string_val), "struct", "structure");
         char *code = joinTexts(3,
@@ -2806,7 +3106,7 @@ yyreduce:
 
   case 38:
 /* Line 1792 of yacc.c  */
-#line 1179 "parser.y"
+#line 1479 "parser.y"
     {
         (yyval.code) = makeCodeAttr("");
     }
@@ -2814,7 +3114,7 @@ yyreduce:
 
   case 39:
 /* Line 1792 of yacc.c  */
-#line 1183 "parser.y"
+#line 1483 "parser.y"
     {
         char *code = joinTexts(3,
                                formatText("field %s %s\n", (yyvsp[(1) - (4)].string_val), (yyvsp[(2) - (4)].string_val)),
@@ -2826,7 +3126,7 @@ yyreduce:
 
   case 40:
 /* Line 1792 of yacc.c  */
-#line 1193 "parser.y"
+#line 1493 "parser.y"
     {
         (yyval.code) = (yyvsp[(2) - (3)].code);
     }
@@ -2834,7 +3134,7 @@ yyreduce:
 
   case 41:
 /* Line 1792 of yacc.c  */
-#line 1199 "parser.y"
+#line 1499 "parser.y"
     {
         (yyval.expr) = (yyvsp[(1) - (1)].expr);
     }
@@ -2842,7 +3142,7 @@ yyreduce:
 
   case 42:
 /* Line 1792 of yacc.c  */
-#line 1203 "parser.y"
+#line 1503 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2855,7 +3155,7 @@ yyreduce:
 
   case 43:
 /* Line 1792 of yacc.c  */
-#line 1212 "parser.y"
+#line 1512 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2868,7 +3168,7 @@ yyreduce:
 
   case 44:
 /* Line 1792 of yacc.c  */
-#line 1221 "parser.y"
+#line 1521 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2881,7 +3181,7 @@ yyreduce:
 
   case 45:
 /* Line 1792 of yacc.c  */
-#line 1230 "parser.y"
+#line 1530 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2894,7 +3194,7 @@ yyreduce:
 
   case 46:
 /* Line 1792 of yacc.c  */
-#line 1239 "parser.y"
+#line 1539 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2907,7 +3207,7 @@ yyreduce:
 
   case 47:
 /* Line 1792 of yacc.c  */
-#line 1248 "parser.y"
+#line 1548 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2920,7 +3220,7 @@ yyreduce:
 
   case 48:
 /* Line 1792 of yacc.c  */
-#line 1257 "parser.y"
+#line 1557 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(3,
@@ -2933,7 +3233,7 @@ yyreduce:
 
   case 49:
 /* Line 1792 of yacc.c  */
-#line 1266 "parser.y"
+#line 1566 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(2,
@@ -2945,7 +3245,7 @@ yyreduce:
 
   case 50:
 /* Line 1792 of yacc.c  */
-#line 1274 "parser.y"
+#line 1574 "parser.y"
     {
         (yyval.expr) = (yyvsp[(2) - (3)].expr);
     }
@@ -2953,31 +3253,31 @@ yyreduce:
 
   case 51:
 /* Line 1792 of yacc.c  */
-#line 1279 "parser.y"
+#line 1579 "parser.y"
     { (yyval.string_val) = strdup("int"); }
     break;
 
   case 52:
 /* Line 1792 of yacc.c  */
-#line 1280 "parser.y"
+#line 1580 "parser.y"
     { (yyval.string_val) = strdup("float"); }
     break;
 
   case 53:
 /* Line 1792 of yacc.c  */
-#line 1281 "parser.y"
+#line 1581 "parser.y"
     { (yyval.string_val) = strdup("char"); }
     break;
 
   case 54:
 /* Line 1792 of yacc.c  */
-#line 1282 "parser.y"
+#line 1582 "parser.y"
     { (yyval.string_val) = strdup("bool"); }
     break;
 
   case 55:
 /* Line 1792 of yacc.c  */
-#line 1286 "parser.y"
+#line 1586 "parser.y"
     {
         (yyval.expr) = makeExprAttr((yyvsp[(1) - (1)].string_val), "");
     }
@@ -2985,7 +3285,7 @@ yyreduce:
 
   case 56:
 /* Line 1792 of yacc.c  */
-#line 1290 "parser.y"
+#line 1590 "parser.y"
     {
         (yyval.expr) = makeExprAttr((yyvsp[(1) - (1)].string_val), "");
     }
@@ -2993,7 +3293,7 @@ yyreduce:
 
   case 57:
 /* Line 1792 of yacc.c  */
-#line 1294 "parser.y"
+#line 1594 "parser.y"
     {
         (yyval.expr) = makeExprAttr((yyvsp[(1) - (1)].string_val), "");
     }
@@ -3001,7 +3301,7 @@ yyreduce:
 
   case 58:
 /* Line 1792 of yacc.c  */
-#line 1298 "parser.y"
+#line 1598 "parser.y"
     {
         (yyval.expr) = makeExprAttr((yyvsp[(1) - (1)].string_val), "");
     }
@@ -3009,7 +3309,7 @@ yyreduce:
 
   case 59:
 /* Line 1792 of yacc.c  */
-#line 1302 "parser.y"
+#line 1602 "parser.y"
     {
         (yyval.expr) = makeExprAttr((yyvsp[(1) - (1)].string_val), "");
     }
@@ -3017,7 +3317,7 @@ yyreduce:
 
   case 60:
 /* Line 1792 of yacc.c  */
-#line 1306 "parser.y"
+#line 1606 "parser.y"
     {
         (yyval.expr) = makeExprAttr((yyvsp[(1) - (1)].string_val), "");
     }
@@ -3025,7 +3325,7 @@ yyreduce:
 
   case 61:
 /* Line 1792 of yacc.c  */
-#line 1310 "parser.y"
+#line 1610 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(2,
@@ -3037,7 +3337,7 @@ yyreduce:
 
   case 62:
 /* Line 1792 of yacc.c  */
-#line 1318 "parser.y"
+#line 1618 "parser.y"
     {
         char *temp = newTemp();
         char *code = joinTexts(2,
@@ -3049,7 +3349,7 @@ yyreduce:
 
   case 63:
 /* Line 1792 of yacc.c  */
-#line 1326 "parser.y"
+#line 1626 "parser.y"
     {
         char *temp = newTemp();
         char *code = formatText("%s = call %s\n", temp, (yyvsp[(1) - (3)].string_val));
@@ -3059,7 +3359,7 @@ yyreduce:
 
 
 /* Line 1792 of yacc.c  */
-#line 3063 "y.tab.c"
+#line 3363 "y.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -3291,7 +3591,7 @@ yyreturn:
 
 
 /* Line 2055 of yacc.c  */
-#line 1331 "parser.y"
+#line 1631 "parser.y"
 
 
 extern char *yytext; 
@@ -3338,6 +3638,7 @@ int main(int argc, char *argv[]) {
         writeSymbolTableToFile();
         writeIntermediateCode();
         writeOptimizedIntermediateCode();
+        writeFinalCode();
         writeTokenTypes();
         writeTokenTable();
         clearMemoryAllocation();

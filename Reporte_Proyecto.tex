@@ -1,0 +1,388 @@
+\documentclass[12pt]{article}
+
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage[a4paper, margin=3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{caption}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codeframe}{RGB}{210,210,210}
+\definecolor{codekeyword}{RGB}{0,92,150}
+\definecolor{codestring}{RGB}{160,60,0}
+\definecolor{codecomment}{RGB}{95,95,95}
+\definecolor{codeident}{RGB}{70,70,70}
+
+\lstdefinestyle{reportstyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekeyword}\bfseries,
+    stringstyle=\color{codestring},
+    commentstyle=\color{codecomment}\itshape,
+    identifierstyle=\color{codeident},
+    showstringspaces=false,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    tabsize=4,
+    breaklines=true,
+    breakatwhitespace=true,
+    columns=fullflexible,
+    captionpos=b,
+    keepspaces=true,
+    xleftmargin=1em,
+    framexleftmargin=0.8em
+}
+
+\lstset{style=reportstyle}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=codekeyword,
+    urlcolor=codekeyword,
+    pdftitle={Reporte de compilador de mini-lenguaje},
+    pdfauthor={Ortega Novoa Octavio}
+}
+
+% ===========================
+% DOCUMENTO
+% ===========================
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+
+\begin{minipage}{0.49\textwidth}
+\begin{flushleft}
+\includegraphics[scale=0.12]{Imagenes/UNAM_logo.png}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\begin{flushright}
+\includegraphics[scale=0.18]{Imagenes/LogoIngenieria.png}
+\end{flushright}
+\end{minipage}
+
+\vfill
+
+{\scshape\Large \textbf{UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO}} \\[4mm]
+{\scshape\large \textbf{FACULTAD DE INGENIERÍA}} \\[8mm]
+
+{\Large \textbf{Compiladores}} \\[15mm]
+
+{\Huge \textbf{Proyecto: Compilador de un mini-lenguaje con funciones, estructuras de control y expresiones booleanas}} \\[20mm]
+
+\begin{tabular}{rl}
+\textbf{Profesor:} & MANUEL ENRIQUE CASTAÑEDA CASTAÑEDA \\[2mm]
+\textbf{Alumnos:} & Ortega Novoa Octavio \\
+                  & [Nombre del segundo alumno] \\
+                  & [Nombre del tercer alumno] \\[4mm]
+\textbf{Fecha de entrega:} & 18 de marzo de 2026 \\
+\end{tabular}
+
+\vfill
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+Este reporte documenta el diseño e implementación de un compilador para un mini-lenguaje de programación orientado a fines académicos. El objetivo principal fue construir un traductor dirigido por la sintaxis capaz de reconocer declaraciones, expresiones aritméticas y booleanas, estructuras de control, funciones sin parámetros, así como entrada y salida estándar.
+
+El desarrollo se organizó en las etapas clásicas de un compilador: análisis léxico, análisis sintáctico, traducción dirigida por la sintaxis, generación de código intermedio de tres direcciones, optimización básica y generación de código final en un pseudocódigo de ensamblador simple.
+
+\section{Requisitos del proyecto}
+El proyecto contempla los siguientes componentes:
+\begin{itemize}[label={-}]
+    \item Declaraciones y uso de funciones sin parámetros.
+    \item Expresiones aritméticas y booleanas con operadores básicos.
+    \item Estructuras de control: if-else, while, do-while y for.
+    \item Declaraciones y asignaciones de variables enteras y booleanas.
+    \item Entrada y salida estándar con lectura e impresión.
+    \item Generación de tabla de símbolos.
+    \item Generación de código intermedio y código final.
+    \item Optimización básica mediante propagación de constantes y eliminación de código muerto.
+\end{itemize}
+
+\section{Diseño del mini-lenguaje}
+Antes de implementar el compilador se definió una sintaxis sencilla, cercana a C, para facilitar la escritura de programas de prueba y su traducción.
+
+\subsection{Elementos sintácticos principales}
+El lenguaje incluye:
+\begin{itemize}[label={-}]
+    \item Tipos primitivos: \texttt{int}, \texttt{float}, \texttt{char}, \texttt{bool} y \texttt{void}.
+    \item Operadores aritméticos: \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}.
+    \item Operadores lógicos y relacionales: \texttt{&&}, \texttt{||}, \texttt{!}, \texttt{<}, \texttt{>}, \texttt{<=}, \texttt{>=}, \texttt{==}.
+    \item Estructuras de control: \texttt{if}, \texttt{else}, \texttt{while}, \texttt{do-while}, \texttt{for}.
+    \item Instrucciones de E/S: \texttt{read} y \texttt{print}.
+    \item Declaraciones de funciones sin parámetros.
+\end{itemize}
+
+\subsection{Ejemplo de programa}
+\begin{lstlisting}[language=C, caption={Ejemplo de programa del mini-lenguaje}]
+int main()
+{
+    int a = 2;
+    int b = 3;
+    int c = a + b;
+
+    if (c > 0)
+    {
+        print(c);
+    }
+
+    return c;
+}
+\end{lstlisting}
+
+\section{Análisis léxico}
+El análisis léxico se implementó con Flex. Su función es reconocer unidades léxicas, asignarles un tipo de token y entregar estos tokens al parser. Esta etapa también ayuda a construir un registro de entradas útiles, como tablas de tokens o reportes de errores léxicos.
+
+\subsection{Objetivo del lexer}
+El lexer identifica:
+\begin{itemize}[label={-}]
+    \item Identificadores.
+    \item Literales numéricos, booleanos y de carácter.
+    \item Palabras reservadas.
+    \item Operadores aritméticos, lógicos y relacionales.
+    \item Delimitadores y símbolos especiales.
+\end{itemize}
+
+\subsection{Fragmento representativo del lexer}
+\begin{lstlisting}[language=C, caption={Reconocimiento de tokens en Flex}]
+"int"      { return INT; }
+"float"    { return FLOAT; }
+"char"     { return CHAR; }
+"bool"     { return BOOL; }
+"true"     { yylval.string_val = strdup(yytext); return TRUE_LITERAL; }
+"false"    { yylval.string_val = strdup(yytext); return FALSE_LITERAL; }
+
+{letter}+(_|{letter}|{digit})* {
+    yylval.string_val = strdup(yytext);
+    return IDENTIFIER;
+}
+
+{digit}+            { yylval.string_val = strdup(yytext); return INT_NUMBER; }
+{digit}+\.{digit}+  { yylval.string_val = strdup(yytext); return FLOAT_NUMBER; }
+"&&"                { yylval.string_val = strdup(yytext); return AND; }
+"||"                { yylval.string_val = strdup(yytext); return OR; }
+"!"                 { yylval.string_val = strdup(yytext); return NOT; }
+\end{lstlisting}
+
+\subsection{Comentarios de implementación}
+Una decisión importante fue adjuntar el lexema a varios tokens mediante \texttt{yylval.string	extunderscore val}. Esto permite que el parser use el valor textual de identificadores, literales y operadores para construir el código intermedio. También se descartaron espacios en blanco y comentarios para evitar ruido en el análisis sintáctico.
+
+\section{Análisis sintáctico}
+El parser se implementó con Bison. Su función es validar la estructura del programa y construir, simultáneamente, los atributos necesarios para la traducción dirigida por la sintaxis.
+
+\subsection{Estructura general}
+La gramática define reglas para:
+\begin{itemize}[label={-}]
+    \item Programas formados por una secuencia de sentencias.
+    \item Declaraciones de variables.
+    \item Declaraciones de funciones.
+    \item Control de flujo.
+    \item Expresiones aritméticas y booleanas.
+\end{itemize}
+
+\subsection{Precedencia y asociatividad}
+Se declararon precedencias para respetar el orden natural de evaluación:
+\begin{itemize}[label={-}]
+    \item \texttt{OR} y \texttt{AND} para operaciones lógicas.
+    \item Comparaciones para relacionales.
+    \item \texttt{+} y \texttt{-} para suma y resta.
+    \item \texttt{*} y \texttt{/} para multiplicación y división.
+    \item \texttt{NOT} como operador de mayor precedencia unaria.
+\end{itemize}
+
+\subsection{Fragmento del parser}
+\begin{lstlisting}[language=C, caption={Reglas principales del parser}]
+statement:
+    declaration SEMICOLON
+    | function_declaration
+    | RETURN operation SEMICOLON
+    | PRINT OPEN_PARENTHESIS operation CLOSE_PARENTHESIS SEMICOLON
+    | READ OPEN_PARENTHESIS IDENTIFIER CLOSE_PARENTHESIS SEMICOLON
+    | if_statement
+    | while_statement
+    | do_while_statement SEMICOLON
+    | for_statement
+    ;
+
+operation:
+    operation PLUS operation
+    | operation MULTIPLY operation
+    | operation COMPARISON operation
+    | operation AND operation
+    | operation OR operation
+    | NOT operation
+    | expression
+    ;
+\end{lstlisting}
+
+\subsection{Nota de traducción dirigida por la sintaxis}
+Cada regla sintáctica construye atributos heredados o sintetizados que permiten generar el código intermedio durante el análisis. Esto evita recorrer el árbol sintáctico en una fase separada y simplifica la implementación general.
+
+\section{Tabla de símbolos}
+La tabla de símbolos almacena la información semántica básica del programa: nombre, tipo y categoría de cada identificador. Su papel es fundamental para controlar declaraciones, detectar duplicados y mantener el contexto de variables y funciones.
+
+\subsection{Información registrada}
+\begin{itemize}[label={-}]
+    \item Variables.
+    \item Funciones.
+    \item Estructuras, si se usan en el lenguaje extendido.
+\end{itemize}
+
+\subsection{Ejemplo de uso}
+\begin{lstlisting}[language=C, caption={Registro de símbolos}]
+void addSymbol(char* name, char* type, char* category)
+{
+    for(int i = 0; i < symbolCount; i++)
+    {
+        if(strcmp(symbolTable[i].name, name) == 0)
+        {
+            printf("[Error Semantico] Ya fue declarada.\n");
+            return;
+        }
+    }
+
+    strcpy(symbolTable[symbolCount].name, name);
+    strcpy(symbolTable[symbolCount].type, type);
+    strcpy(symbolTable[symbolCount].category, category);
+    symbolCount++;
+}
+\end{lstlisting}
+
+\section{Código intermedio de tres direcciones}
+La generación de código intermedio se implementó en formato de tres direcciones, que es una representación muy útil para optimización y para la traducción posterior a código final.
+
+\subsection{Características}
+La salida usa:
+\begin{itemize}[label={-}]
+    \item Temporales \texttt{t1}, \texttt{t2}, etc.
+    \item Etiquetas \texttt{L1}, \texttt{L2}, etc.
+    \item Saltos condicionales e incondicionales.
+    \item Asignaciones intermedias para expresiones complejas.
+\end{itemize}
+
+\subsection{Ejemplo}
+\begin{lstlisting}[language={}, caption={Ejemplo de código intermedio}]
+t1 = a + b
+t2 = t1 * 4
+ifFalse t2 goto L1
+goto L2
+L1:
+    d = 99
+L2:
+\end{lstlisting}
+
+\subsection{Ventaja de esta representación}
+El formato de tres direcciones simplifica el análisis posterior porque descompone expresiones complejas en instrucciones elementales. Esto permite aplicar optimizaciones locales y facilita la traducción a una máquina virtual o a un ensamblador simple.
+
+\section{Optimización básica}
+Para mejorar el intermedio se implementaron optimizaciones locales sencillas.
+
+\subsection{Propagación de constantes}
+Si una variable recibe un valor constante, ese valor puede reutilizarse en instrucciones posteriores. Por ejemplo, una expresión como \texttt{a = 2; b = a;} puede reducirse a \texttt{b = 2}.
+
+\subsection{Plegado de constantes}
+Las operaciones entre literales se calculan en tiempo de compilación. Por ejemplo:
+\begin{lstlisting}[language={}, caption={Plegado de constantes}]
+t1 = 2 + 3   ->   t1 = 5
+\end{lstlisting}
+
+\subsection{Eliminación de código muerto}
+Cuando se detecta un \texttt{goto} o un \texttt{return}, el código intermedio posterior puede descartarse si ya no es alcanzable. Esto evita generar instrucciones inútiles.
+
+\subsection{Mejora de temporales}
+También se reducen copias innecesarias, evitando secuencias redundantes como:
+\begin{lstlisting}[language={}, caption={Temporal redundante}]
+t1 = call helper
+c = t1
+\end{lstlisting}
+cuando se puede emitir directamente una instrucción final más compacta.
+
+\section{Código final}
+El código final se genera a partir del intermedio optimizado y se traduce a un pseudocódigo de ensamblador simple. Este paso no busca emular una arquitectura real completa, sino representar de forma clara la ejecución de instrucciones elementales.
+
+\subsection{Mapeo de instrucciones}
+\begin{itemize}[label={-}]
+    \item \texttt{MOV} para asignaciones.
+    \item \texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV} para operaciones aritméticas.
+    \item \texttt{LT}, \texttt{GT}, \texttt{LE}, \texttt{GE}, \texttt{EQ} para comparaciones.
+    \item \texttt{AND}, \texttt{OR}, \texttt{NOT} para booleanos.
+    \item \texttt{JMP}, \texttt{JZ}, \texttt{JNZ} para control de flujo.
+    \item \texttt{CALL}, \texttt{RET}, \texttt{PRINT}, \texttt{READ} para funciones y E/S.
+\end{itemize}
+
+\subsection{Ejemplo de salida final}
+\begin{lstlisting}[language={}, caption={Ejemplo de código final}]
+helper PROC ; int
+RET 4
+MOV d, 99
+JMP L4
+L4:
+MOV b, 0
+CALL helper
+MOV c, R0
+PRINT c
+RET d
+helper ENDP
+\end{lstlisting}
+
+\subsection{Comentario técnico}
+La salida final es adecuada para una máquina virtual simple o para una evaluación académica del proceso de compilación. No sustituye una arquitectura con administración de registros, pila y convenciones de llamada completas, pero cumple con el objetivo de mostrar una traducción clara y consistente.
+
+\section{Pruebas}
+Se probaron múltiples programas con combinaciones de variables, funciones, condicionales, ciclos y expresiones booleanas. Estas pruebas permitieron verificar:
+\begin{itemize}[label={-}]
+    \item Reconocimiento correcto de tokens.
+    \item Aceptación sintáctica de programas válidos.
+    \item Generación de tabla de símbolos.
+    \item Emisión de código intermedio y optimizado.
+    \item Traducción al código final.
+\end{itemize}
+
+\subsection{Casos de prueba sugeridos}
+\begin{itemize}[label={-}]
+    \item Declaraciones simples: \texttt{int a = 2;}
+    \item Expresiones aritméticas: \texttt{c = a + b * 4;}
+    \item Condiciones booleanas: \texttt{if (1 && 0 || !0)}
+    \item Bucles: \texttt{while (0)}, \texttt{do-while}, \texttt{for}
+    \item Llamadas a funciones: \texttt{helper()}
+\end{itemize}
+
+\section{Resultados obtenidos}
+Los resultados obtenidos muestran que el compilador cumple los objetivos centrales planteados al inicio del proyecto:
+\begin{itemize}[label={-}]
+    \item El lenguaje puede analizarse y traducirse correctamente.
+    \item Se genera información semántica en una tabla de símbolos.
+    \item Se obtiene código intermedio de tres direcciones.
+    \item El intermedio puede optimizarse de forma básica.
+    \item El código final conserva la lógica original del programa.
+\end{itemize}
+
+\section{Conclusiones}
+El proyecto permitió integrar varias fases del proceso de compilación en una sola herramienta funcional. Aunque la implementación es académica y simplificada, cubre los lineamientos fundamentales del curso: análisis léxico, análisis sintáctico, traducción dirigida por la sintaxis, generación de intermedio, optimización básica y código final.
+
+Como mejora futura se podría implementar manejo de parámetros en funciones, recursividad, un sistema de tipos más riguroso y una máquina virtual que ejecute directamente el código generado.
+
+\section{Tecnologías utilizadas}
+\begin{itemize}[label={-}]
+    \item C.
+    \item Flex para el análisis léxico.
+    \item Bison para el análisis sintáctico.
+    \item LaTeX para la documentación.
+\end{itemize}
+
+\end{document}
