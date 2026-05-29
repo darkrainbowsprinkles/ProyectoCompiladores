@@ -74,16 +74,17 @@
 {\scshape\Large \textbf{UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO}} \\[4mm]
 {\scshape\large \textbf{FACULTAD DE INGENIERÍA}} \\[8mm]
 
-{\Large \textbf{Compiladores}} \\[15mm]
+{\Large \textbf{Compiladores}} \\[4mm]
+{\large Semestre 2026-2} \\[11mm]
 
 {\Huge \textbf{Proyecto: Compilador de un mini-lenguaje con funciones, estructuras de control y expresiones booleanas}} \\[20mm]
 
 \begin{tabular}{rl}
 \textbf{Profesor:} & MANUEL ENRIQUE CASTAÑEDA CASTAÑEDA \\[2mm]
 \textbf{Alumnos:} & Ortega Novoa Octavio \\
-                  & [Nombre del segundo alumno] \\
-                  & [Nombre del tercer alumno] \\[4mm]
-\textbf{Fecha de entrega:} & 18 de marzo de 2026 \\
+                  & Bailón Cruz Owen Isaac \\
+                  & Torres Chávez Juan Carlos \\[4mm]
+\textbf{Fecha de entrega:} & 29 de Mayo de 2026 \\
 \end{tabular}
 
 \vfill
@@ -96,52 +97,67 @@
 \section{Introducción}
 Este reporte presenta el diseño e implementación de un compilador para un mini-lenguaje de programación con fines académicos. Durante el desarrollo se buscó que el compilador no solo reconociera programas válidos, sino que también mostrara con claridad cómo una entrada fuente se transforma en código intermedio y después en un código final más simple.
 
-La idea principal fue construir un traductor dirigido por la sintaxis capaz de reconocer declaraciones, expresiones aritméticas y booleanas, estructuras de control, funciones sin parámetros, así como entrada y salida estándar. El proyecto se fue armando por etapas: primero el análisis léxico, después el análisis sintáctico, luego la generación de intermedio, más tarde la optimización y al final la traducción a un pseudocódigo de ensamblador simple.
+La idea principal fue construir un traductor dirigido por la sintaxis capaz de reconocer declaraciones, expresiones aritméticas y booleanas, estructuras de control avanzadas (incluyendo selección múltiple), funciones sin parámetros, declaración de estructuras agrupadas y rutinas de entrada y salida estándar con soporte para cadenas de texto. 
 
-Una parte importante del trabajo fue ir probando cada fase por separado. Eso permitió detectar errores más rápido, corregirlos sin rehacer todo el compilador y entender mejor cómo se conectan las distintas partes del proceso de compilación.
+El proyecto se fue armando por etapas: primero el análisis léxico, después el análisis sintáctico, luego la generación de código intermedio, más tarde la optimización y, al final, la traducción a un pseudocódigo de ensamblador simple. Una parte importante del trabajo fue ir probando cada fase por separado mediante una batería de scripts en C. Esto permitió detectar errores más rápido, corregirlos sin rehacer todo el compilador y entender mejor cómo se conectan las distintas partes del proceso de compilación.
 
-Para llevarlo a cabo se usaron C como lenguaje principal de implementación, Flex para el análisis léxico, Bison para el análisis sintáctico y LaTeX para la documentación del reporte. Con eso se pudo construir tanto el compilador como el informe técnico del proyecto.
+Para llevarlo a cabo se usaron C como lenguaje principal de implementación, Flex para el análisis léxico, Bison para el análisis sintáctico y LaTeX para la documentación del reporte. Con ello se pudo construir tanto el compilador como el presente informe técnico.
 
 \section{Requisitos del proyecto}
 El proyecto contempla los siguientes componentes:
 \begin{itemize}[label={-}]
-    \item Declaraciones y uso de funciones sin parámetros.
+    \item Declaraciones y uso de funciones sin parámetros (con y sin valor de retorno).
     \item Expresiones aritméticas y booleanas con operadores básicos.
-    \item Estructuras de control: if-else, while, do-while y for.
-    \item Declaraciones y asignaciones de variables enteras y booleanas.
-    \item Entrada y salida estándar con lectura e impresión.
-    \item Generación de tabla de símbolos.
-    \item Generación de código intermedio y código final.
+    \item Estructuras de control de flujo: \texttt{if-else}, \texttt{while}, \texttt{do-while}, \texttt{for} y \texttt{switch/case}.
+    \item Declaraciones y asignaciones de variables enteras, flotantes, de carácter y booleanas.
+    \item Agrupación de datos mediante la palabra reservada \texttt{struct}.
+    \item Entrada y salida estándar con lectura de variables e impresión de variables y cadenas literales.
+    \item Generación de tabla de símbolos detallada.
+    \item Generación de código intermedio de tres direcciones y código final tipo ensamblador.
     \item Optimización básica mediante propagación de constantes y eliminación de código muerto.
 \end{itemize}
 
 \section{Diseño del mini-lenguaje}
-Antes de implementar el compilador se definió una sintaxis sencilla, cercana a C, para facilitar la escritura de programas de prueba y su traducción. Se eligió este estilo porque resulta familiar y evita pelear demasiado con la sintaxis mientras se trabaja en la parte importante del proyecto, que es la traducción.
+Antes de implementar el compilador se definió una sintaxis sencilla, fuertemente inspirada en C, para facilitar la escritura de programas de prueba y su traducción. Se eligió este estilo porque resulta familiar y evita introducir sobrecarga cognitiva con gramáticas exóticas mientras se trabaja en el núcleo del proyecto: la traducción semántica.
 
-La intención no fue inventar un lenguaje completamente nuevo, sino diseñar uno lo bastante claro para poder probar funciones, condiciones, ciclos y expresiones booleanas sin que la gramática se volviera innecesariamente complicada.
+La intención no fue inventar un lenguaje completamente nuevo, sino diseñar uno lo bastante claro para poder probar funciones, condiciones, ciclos, agrupaciones y expresiones lógicas complejas de manera robusta.
 
 \subsection{Elementos sintácticos principales}
 El lenguaje incluye:
 \begin{itemize}[label={-}]
     \item Tipos primitivos: \texttt{int}, \texttt{float}, \texttt{char}, \texttt{bool} y \texttt{void}.
-    \item Operadores aritméticos: \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}.
-    \item Operadores lógicos y relacionales: \texttt{&&}, \texttt{||}, \texttt{!}, \texttt{<}, \texttt{>}, \texttt{<=}, \texttt{>=}, \texttt{==}.
-    \item Estructuras de control: \texttt{if}, \texttt{else}, \texttt{while}, \texttt{do-while}, \texttt{for}.
-    \item Instrucciones de E/S: \texttt{read} y \texttt{print}.
-    \item Declaraciones de funciones sin parámetros.
+    \item Operadores aritméticos: \texttt{+}, \texttt{-}, \texttt{*}, \texttt{/}, \texttt{++}, \texttt{--}.
+    \item Operadores lógicos y relacionales: \texttt{\&\&}, \texttt{||}, \texttt{!}, \texttt{<}, \texttt{>}, \texttt{<=}, \texttt{>=}, \texttt{==}.
+    \item Estructuras de control cíclico y condicional: \texttt{if}, \texttt{else}, \texttt{while}, \texttt{do-while}, \texttt{for}.
+    \item Estructuras de selección múltiple: \texttt{switch}, \texttt{case}, \texttt{default}, \texttt{break}.
+    \item Instrucciones de E/S: \texttt{read} y \texttt{print} (con soporte para mensajes entre comillas).
+    \item Declaraciones de estructuras de datos con \texttt{struct}.
 \end{itemize}
 
 \subsection{Ejemplo de programa}
-\begin{lstlisting}[language=C, caption={Ejemplo de programa del mini-lenguaje}]
+\begin{lstlisting}[language=C, caption={Ejemplo representativo del mini-lenguaje}]
+struct Punto
+{
+    int x;
+    int y;
+};
+
 int main()
 {
     int a = 2;
     int b = 3;
     int c = a + b;
 
-    if (c > 0)
+    print("Iniciando validacion");
+
+    switch(c)
     {
-        print(c);
+        case 5:
+            print("Resultado esperado");
+            break;
+        default:
+            print("Resultado inesperado");
+            break;
     }
 
     return c;
@@ -149,75 +165,67 @@ int main()
 \end{lstlisting}
 
 \section{Análisis léxico}
-El análisis léxico se implementó con Flex. Su función es reconocer unidades léxicas, asignarles un tipo de token y entregar estos tokens al parser. Esta etapa también ayuda a construir un registro de entradas útiles, como tablas de tokens o reportes de errores léxicos.
-
-En la práctica, el lexer fue la primera capa de validación del proyecto. Si aquí se reconoce mal una palabra reservada o un operador, el parser ya empieza con información incorrecta. Por eso fue importante dejar bien definidos los tokens desde el principio.
+El análisis léxico se implementó utilizando Flex. Su función es reconocer las unidades léxicas (lexemas) del código fuente, asignarles un tipo de token y entregarlos al analizador sintáctico. Esta etapa es la primera capa de validación del proyecto y es la responsable de generar tablas de salida útiles para la depuración, como la tabla de tokens y la tabla de clasificación de variables y cadenas.
 
 \subsection{Objetivo del lexer}
 El lexer identifica:
 \begin{itemize}[label={-}]
-    \item Identificadores.
-    \item Literales numéricos, booleanos y de carácter.
-    \item Palabras reservadas.
-    \item Operadores aritméticos, lógicos y relacionales.
-    \item Delimitadores y símbolos especiales.
+    \item Identificadores de variables, funciones y estructuras.
+    \item Literales numéricos (enteros y flotantes), booleanos (\texttt{true}/\texttt{false}) y cadenas de texto.
+    \item Palabras reservadas del lenguaje.
+    \item Operadores matemáticos, lógicos y relacionales.
+    \item Delimitadores y símbolos especiales (llaves, paréntesis, puntos y coma).
 \end{itemize}
 
 \subsection{Fragmento representativo del lexer}
-\begin{lstlisting}[language=C, caption={Reconocimiento de tokens en Flex}]
-"int"      { return INT; }
-"float"    { return FLOAT; }
-"char"     { return CHAR; }
-"bool"     { return BOOL; }
-"true"     { yylval.string_val = strdup(yytext); return TRUE_LITERAL; }
-"false"    { yylval.string_val = strdup(yytext); return FALSE_LITERAL; }
+\begin{lstlisting}[language=C, caption={Reconocimiento de tokens principales en Flex}]
+"int"       { registerToken(yytext, "Palabras Reservadas"); return INT; }
+"switch"    { registerToken(yytext, "Palabras Reservadas"); return SWITCH; }
+"struct"    { registerToken(yytext, "Palabras Reservadas"); return STRUCT; }
+"print"     { registerToken(yytext, "Palabras Reservadas"); return PRINT; }
 
-{letter}+(_|{letter}|{digit})* {
-    yylval.string_val = strdup(yytext);
+{letter}+(_|{letter}|{digit})* { 
+    registerToken(yytext, "Variables"); 
+    yylval.string_val = strdup(yytext); 
     return IDENTIFIER;
 }
 
-{digit}+            { yylval.string_val = strdup(yytext); return INT_NUMBER; }
-{digit}+\.{digit}+  { yylval.string_val = strdup(yytext); return FLOAT_NUMBER; }
-"&&"                { yylval.string_val = strdup(yytext); return AND; }
-"||"                { yylval.string_val = strdup(yytext); return OR; }
-"!"                 { yylval.string_val = strdup(yytext); return NOT; }
+\"([^\"\n]|\\.)*\" { 
+    registerToken(yytext, "Cadenas"); 
+    yylval.string_val = strdup(yytext); 
+    return CHAR_LITERAL; 
+}
+
+"&&"        { registerToken(yytext, "Operadores Logicos"); yylval.string_val = strdup(yytext); return AND; }
 \end{lstlisting}
 
 \subsection{Comentarios de implementación}
-Una decisión importante fue adjuntar el lexema a varios tokens mediante \texttt{yylval.string\_val}. Esto permite que el parser use el valor textual de identificadores, literales y operadores para construir el código intermedio. También se descartaron espacios en blanco y comentarios para evitar ruido en el análisis sintáctico.
-
-Al principio hubo un detalle común en este tipo de proyecto: varios tokens se devolvían solo como tipo y no como valor textual. Eso servía para validar la sintaxis, pero no alcanzaba para generar código. La corrección fue pasar el lexema directamente en tokens como identificadores, literales numéricos y operadores que luego se usan en la traducción.
-
-También se cuidó el orden de las reglas para evitar confusiones con operadores de dos caracteres como \texttt{&&} y \texttt{||}. En el lexer, el orden sí importa, porque una regla mal acomodada puede hacer que se capture un símbolo más corto antes que uno más largo.
+Una decisión arquitectónica fundamental fue adjuntar el valor textual del lexema a múltiples tokens mediante \texttt{yylval.string\_val}. Esto permite que el parser no solo valide la gramática, sino que utilice directamente el valor de identificadores, literales y cadenas capturadas para construir la representación del código intermedio. Se descartaron los espacios en blanco y los comentarios en línea (\texttt{//}) para evitar ruido durante el análisis sintáctico.
 
 \section{Análisis sintáctico}
-El parser se implementó con Bison. Su función es validar la estructura del programa y construir, simultáneamente, los atributos necesarios para la traducción dirigida por la sintaxis. Aquí ya no solo importa que el programa esté bien escrito, sino también cómo se va a transformar cada instrucción.
-
-En esta etapa se definieron reglas para sentencias, expresiones, funciones y estructuras de control. Cada regla se pensó para que la gramática siguiera siendo entendible y para que fuera posible insertar acciones semánticas en los puntos correctos.
+El parser se implementó con Bison. Su función es validar la estructura jerárquica del programa y construir, de manera simultánea, los atributos y fragmentos de código necesarios mediante la técnica de traducción dirigida por la sintaxis. Aquí no solo importa que el programa esté bien escrito, sino que las acciones semánticas embebidas transformen cada instrucción correctamente.
 
 \subsection{Estructura general}
-La gramática define reglas para:
+La gramática define reglas robustas para:
 \begin{itemize}[label={-}]
-    \item Programas formados por una secuencia de sentencias.
-    \item Declaraciones de variables.
-    \item Declaraciones de funciones.
-    \item Control de flujo.
-    \item Expresiones aritméticas y booleanas.
+    \item El programa principal como una secuencia recursiva de sentencias.
+    \item Declaraciones de variables, estructuras (\texttt{struct\_statement}) y funciones.
+    \item Control de flujo complejo, destacando la integración de \texttt{switch\_statement} y sus respectivos \texttt{case}.
+    \item Expresiones aritméticas y booleanas respetando la precedencia tradicional de operadores.
 \end{itemize}
 
 \subsection{Precedencia y asociatividad}
-Se declararon precedencias para respetar el orden natural de evaluación:
+Para evitar la ambigüedad inherente de las gramáticas (como el clásico problema del \texttt{else} ambiguo), se declararon precedencias explícitas:
 \begin{itemize}[label={-}]
-    \item \texttt{OR} y \texttt{AND} para operaciones lógicas.
-    \item Comparaciones para relacionales.
-    \item \texttt{+} y \texttt{-} para suma y resta.
-    \item \texttt{*} y \texttt{/} para multiplicación y división.
-    \item \texttt{NOT} como operador de mayor precedencia unaria.
+    \item \texttt{OR} (\texttt{||}) y \texttt{AND} (\texttt{\&\&}) para operaciones lógicas.
+    \item Comparaciones relacionales (\texttt{<}, \texttt{>}, \texttt{==}).
+    \item Suma (\texttt{+}) y resta (\texttt{-}).
+    \item Multiplicación (\texttt{*}) y división (\texttt{/}).
+    \item \texttt{NOT} (\texttt{!}) como operador unario de alta prioridad.
 \end{itemize}
 
 \subsection{Fragmento del parser}
-\begin{lstlisting}[language=C, caption={Reglas principales del parser}]
+\begin{lstlisting}[language=C, caption={Reglas principales de sentencias en Bison}]
 statement:
     declaration SEMICOLON
     | function_declaration
@@ -228,64 +236,37 @@ statement:
     | while_statement
     | do_while_statement SEMICOLON
     | for_statement
-    ;
-
-operation:
-    operation PLUS operation
-    | operation MULTIPLY operation
-    | operation COMPARISON operation
-    | operation AND operation
-    | operation OR operation
-    | NOT operation
-    | expression
+    | switch_statement
+    | struct_statement SEMICOLON
+    | BREAK SEMICOLON
     ;
 \end{lstlisting}
 
-\subsection{Nota de traducción dirigida por la sintaxis}
-Cada regla sintáctica construye atributos heredados o sintetizados que permiten generar el código intermedio durante el análisis. Esto evita recorrer el árbol sintáctico en una fase separada y simplifica la implementación general.
-
-En otras palabras, el código no se traduce ``después'', sino mientras se analiza. Esa decisión fue práctica porque permitió aprovechar la misma estructura del parser para producir temporales, etiquetas y saltos sin crear una pasada extra.
-
-\subsection{Problemas encontrados en la gramática}
-Una dificultad importante fue el manejo de la precedencia, sobre todo con expresiones booleanas y con el clásico problema del \texttt{else} ambiguo. Al inicio aparecían conflictos de desplazamiento y reducción, así que fue necesario declarar precedencias explícitas y ajustar algunas reglas para que el parser entendiera la intención correcta.
-
-Otro problema que salió en las pruebas fue que ciertas construcciones dejaban un punto y coma adicional al final. Eso se corrigió adaptando la gramática a la forma en la que realmente se estaban escribiendo los programas de prueba.
+\subsection{Traducción dirigida por la sintaxis}
+Cada regla sintáctica construye atributos sintetizados (\texttt{code}, \texttt{place}, \texttt{initCode}, etc.) que permiten ensamblar el código intermedio a medida que el árbol de derivación se resuelve. Esta decisión práctica elimina la necesidad de realizar pasadas adicionales sobre un Árbol Sintáctico Abstracto (AST) completo en memoria, produciendo variables temporales, etiquetas y saltos condicionales en tiempo real.
 
 \section{Implementación y resolución de problemas}
-Esta sección resume cómo se fue armando el compilador de forma práctica. El proyecto no se resolvió de una sola vez; más bien se fue depurando por capas.
+El proyecto no se construyó de una sola vez; su desarrollo fue iterativo y por capas. Primero se validó el análisis léxico y sintáctico con programas triviales. Posteriormente, se incorporó la tabla de símbolos para controlar el alcance y la unicidad de las declaraciones. Una vez estabilizado este núcleo, se implementó la generación de código intermedio, la optimización y la traducción final.
 
-Primero se validó el análisis léxico y sintáctico con programas pequeños. Después se agregó la tabla de símbolos para registrar variables y funciones. Una vez que esa parte estuvo estable, se empezó a generar código intermedio con temporales y etiquetas. Más adelante se añadió la optimización básica y, finalmente, el código final.
-
-Durante este proceso se resolvieron tres problemas típicos:
+Durante este proceso se resolvieron diversos desafíos técnicos:
 \begin{itemize}[label={-}]
-    \item Tokens que no pasaban el lexema correcto al parser.
-    \item Ambigüedades en la gramática al manejar expresiones y \texttt{else}.
-    \item Redundancias en el código intermedio y final, como saltos innecesarios o temporales que no aportaban mucho.
+    \item \textbf{Propagación de lexemas:} Asegurar que el lexer entregara correctamente las cadenas literales con comillas y los nombres de variables sin truncarlos.
+    \item \textbf{Ambigüedades gramaticales:} Solucionar conflictos \textit{shift/reduce} en expresiones booleanas combinadas y bloques condicionales anidados.
+    \item \textbf{Redundancias de código:} Evitar la generación de etiquetas huérfanas o saltos consecutivos inútiles generados por construcciones como \texttt{do-while} o \texttt{switch}.
 \end{itemize}
-
-La ventaja de trabajar así fue que cada problema quedó aislado en una etapa concreta. Eso hizo posible corregirlo sin afectar todo el compilador al mismo tiempo.
 
 \section{Tabla de símbolos}
-La tabla de símbolos almacena la información semántica básica del programa: nombre, tipo y categoría de cada identificador. Su papel es fundamental para controlar declaraciones, detectar duplicados y mantener el contexto de variables y funciones.
+La tabla de símbolos es la estructura central que almacena la información semántica del programa: nombre, tipo y categoría (variable, función o estructura) de cada identificador. Su papel es fundamental para prevenir colisiones de nombres y validar que los símbolos se utilicen de acuerdo con su naturaleza.
 
-Aquí el compilador empezó a comportarse como algo más que un reconocedor de texto. La tabla de símbolos permitió verificar si un nombre ya había sido declarado y guardar la información necesaria para saber si un identificador pertenecía a una variable, una función o una estructura.
-
-\subsection{Información registrada}
-\begin{itemize}[label={-}]
-    \item Variables.
-    \item Funciones.
-    \item Estructuras, si se usan en el lenguaje extendido.
-\end{itemize}
-
-\subsection{Ejemplo de uso}
-\begin{lstlisting}[language=C, caption={Registro de símbolos}]
-void addSymbol(char* name, char* type, char* category)
+\subsection{Ejemplo de uso interno}
+\begin{lstlisting}[language=C, caption={Función de registro de símbolos}]
+void addSymbol(char* name, char* type, char* category) 
 {
-    for(int i = 0; i < symbolCount; i++)
+    for(int i = 0; i < symbolCount; i++) 
     {
-        if(strcmp(symbolTable[i].name, name) == 0)
+        if(strcmp(symbolTable[i].name, name) == 0) 
         {
-            printf("[Error Semantico] Ya fue declarada.\n");
+            printf("[Error Semantico] La variable/funcion '%s' ya fue declarada.\n", name);
             return;
         }
     }
@@ -298,164 +279,46 @@ void addSymbol(char* name, char* type, char* category)
 \end{lstlisting}
 
 \section{Código intermedio de tres direcciones}
-La generación de código intermedio se implementó en formato de tres direcciones, que es una representación muy útil para optimización y para la traducción posterior a código final.
+La generación de código intermedio se diseñó en formato de tres direcciones. Esta representación desvincula la lógica abstracta del lenguaje fuente de las limitaciones de una arquitectura de hardware específica, facilitando drásticamente los pasos de optimización.
 
-Esta parte fue de las más importantes del proyecto porque permitió separar la lógica del lenguaje de la forma final de salida. En vez de traducir directamente a ensamblador, primero se obtuvo una representación intermedia más limpia y fácil de revisar.
-
-En este punto también se notó que el diseño del compilador quedaba mucho más claro: cada operación compleja se descompone en pasos pequeños y cada bloque de control se convierte en saltos y etiquetas que sí pueden analizarse de forma local.
-
-\subsection{Características}
-La salida usa:
+\subsection{Características de la salida}
 \begin{itemize}[label={-}]
-    \item Temporales \texttt{t1}, \texttt{t2}, etc.
-    \item Etiquetas \texttt{L1}, \texttt{L2}, etc.
-    \item Saltos condicionales e incondicionales.
-    \item Asignaciones intermedias para expresiones complejas.
+    \item Uso exhaustivo de variables temporales (\texttt{t1}, \texttt{t2}, etc.) para desglosar expresiones matemáticas complejas.
+    \item Generación de etiquetas autoincrementables (\texttt{L1}, \texttt{L2}, etc.) para el control de saltos.
+    \item Transcripción directa de cadenas de texto para las instrucciones \texttt{print}.
+    \item Instrucciones atómicas del tipo: \texttt{ifFalse tX goto LY}.
 \end{itemize}
-
-\subsection{Ejemplo}
-\begin{lstlisting}[language={}, caption={Ejemplo de código intermedio}]
-t1 = a + b
-t2 = t1 * 4
-ifFalse t2 goto L1
-goto L2
-L1:
-    d = 99
-L2:
-\end{lstlisting}
-
-\subsection{Ventaja de esta representación}
-El formato de tres direcciones simplifica el análisis posterior porque descompone expresiones complejas en instrucciones elementales. Esto permite aplicar optimizaciones locales y facilita la traducción a una máquina virtual o a un ensamblador simple.
-
-Además, el formato hace más visible lo que hace el compilador internamente. Una expresión larga ya no aparece como una sola línea difícil de interpretar; ahora se ve en pasos intermedios con los que resulta más sencillo depurar y comparar resultados.
 
 \section{Optimización básica}
-Para mejorar el intermedio se implementaron optimizaciones locales sencillas.
+La fase de optimización opera analizando textualmente el código intermedio generado para aplicar reducciones locales sencillas, garantizando un código más limpio antes de la traducción final.
 
-La optimización no buscó construir un optimizador avanzado, sino limpiar las salidas más obvias y mostrar que el compilador sí hace un trabajo adicional sobre el código generado. Se trabajó sobre el texto intermedio ya producido, lo que permitió probar mejoras sin complicar la gramática.
-
-\subsection{Propagación de constantes}
-Si una variable recibe un valor constante, ese valor puede reutilizarse en instrucciones posteriores. Por ejemplo, una expresión como \texttt{a = 2; b = a;} puede reducirse a \texttt{b = 2}.
-
-En las pruebas esto ayudó bastante porque varios programas usaban constantes encadenadas. La propagación permitió eliminar dependencias innecesarias y dejó el resultado más compacto.
-
-\subsection{Plegado de constantes}
-Las operaciones entre literales se calculan en tiempo de compilación. Por ejemplo:
-\begin{lstlisting}[language={}, caption={Plegado de constantes}]
-t1 = 2 + 3   ->   t1 = 5
-\end{lstlisting}
-
-\subsection{Eliminación de código muerto}
-Cuando se detecta un \texttt{goto} o un \texttt{return}, el código intermedio posterior puede descartarse si ya no es alcanzable. Esto evita generar instrucciones inútiles.
-
-Este punto resolvió uno de los comportamientos que más se notaban al probar el compilador: después de un retorno seguían apareciendo instrucciones que ya no iban a ejecutarse. Al corregirlo, la salida final quedó más limpia y más coherente.
-
-\subsection{Mejora de temporales}
-También se reducen copias innecesarias, evitando secuencias redundantes como:
-\begin{lstlisting}[language={}, caption={Temporal redundante}]
-t1 = call helper
-c = t1
-\end{lstlisting}
-cuando se puede emitir directamente una instrucción final más compacta.
-
-La idea aquí fue que el código final no quedara lleno de pasos que no aportan mucho. No se implementó una optimización pesada, pero sí lo suficiente para que la diferencia entre la versión normal y la optimizada fuera visible.
+\begin{itemize}[label={-}]
+    \item \textbf{Propagación de constantes:} Si una variable se inicializa con un valor constante puro, ese valor reemplaza a la variable en operaciones subsecuentes dentro del bloque.
+    \item \textbf{Plegado de constantes (Constant Folding):} Operaciones aritméticas entre literales (ej. \texttt{t1 = 2 + 3}) se resuelven en tiempo de compilación (\texttt{t1 = 5}).
+    \item \textbf{Eliminación de código muerto:} El optimizador detecta instrucciones inalcanzables que suceden inmediatamente después de directivas \texttt{return} o \texttt{break} incondicionales, descartándolas del archivo de salida.
+\end{itemize}
 
 \section{Código final}
-El código final se genera a partir del intermedio optimizado y se traduce a un pseudocódigo de ensamblador simple. Este paso no busca emular una arquitectura real completa, sino representar de forma clara la ejecución de instrucciones elementales.
+El código final toma el intermedio optimizado y lo mapea a un pseudocódigo de ensamblador didáctico. No busca acoplarse a una arquitectura física estricta (como x86 o ARM), sino demostrar la linealización de la memoria y la ejecución atómica de un procesador hipotético.
 
-La salida final se diseñó para que se entendiera fácilmente cómo se mueve la información. Por eso se usó un ensamblador simplificado y no un formato de arquitectura real con pila, registros físicos o convenciones de llamada completas.
-
-\subsection{Mapeo de instrucciones}
+\subsection{Mapeo de mnemónicos}
 \begin{itemize}[label={-}]
-    \item \texttt{MOV} para asignaciones.
-    \item \texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV} para operaciones aritméticas.
-    \item \texttt{LT}, \texttt{GT}, \texttt{LE}, \texttt{GE}, \texttt{EQ} para comparaciones.
-    \item \texttt{AND}, \texttt{OR}, \texttt{NOT} para booleanos.
-    \item \texttt{JMP}, \texttt{JZ}, \texttt{JNZ} para control de flujo.
-    \item \texttt{CALL}, \texttt{RET}, \texttt{PRINT}, \texttt{READ} para funciones y E/S.
+    \item Transferencia de datos: \texttt{MOV}.
+    \item Aritmética: \texttt{ADD}, \texttt{SUB}, \texttt{MUL}, \texttt{DIV}.
+    \item Lógica y comparación: \texttt{AND}, \texttt{OR}, \texttt{NOT}, \texttt{LT}, \texttt{GT}, \texttt{EQ}, etc.
+    \item Control de flujo: saltos incondicionales (\texttt{JMP}) y condicionales (\texttt{JZ}, \texttt{JNZ}).
+    \item Subrutinas y sistema: \texttt{CALL}, \texttt{RET}, \texttt{PRINT}, \texttt{READ}.
 \end{itemize}
-
-\subsection{Ejemplo de salida final}
-\begin{lstlisting}[language={}, caption={Ejemplo de código final}]
-helper PROC ; int
-RET 4
-MOV d, 99
-JMP L4
-L4:
-MOV b, 0
-CALL helper
-MOV c, R0
-PRINT c
-RET d
-helper ENDP
-\end{lstlisting}
-
-\subsection{Comentario técnico}
-La salida final es adecuada para una máquina virtual simple o para una evaluación académica del proceso de compilación. No sustituye una arquitectura con administración de registros, pila y convenciones de llamada completas, pero cumple con el objetivo de mostrar una traducción clara y consistente.
-
-Durante la implementación se fueron corrigiendo detalles como etiquetas vacías, saltos redundantes y copias intermedias innecesarias. Esos ajustes no cambian la lógica del programa, pero sí hacen que el resultado final se vea mejor y más profesional.
 
 \section{Pruebas}
-Se probaron múltiples programas con combinaciones de variables, funciones, condicionales, ciclos y expresiones booleanas. Estas pruebas permitieron verificar:
-\begin{itemize}[label={-}]
-    \item Reconocimiento correcto de tokens.
-    \item Aceptación sintáctica de programas válidos.
-    \item Generación de tabla de símbolos.
-    \item Emisión de código intermedio y optimizado.
-    \item Traducción al código final.
-\end{itemize}
-
-\subsection{Casos de prueba sugeridos}
-\begin{itemize}[label={-}]
-    \item Declaraciones simples: \texttt{int a = 2;}
-    \item Expresiones aritméticas: \texttt{c = a + b * 4;}
-    \item Condiciones booleanas: \texttt{if (1 && 0 || !0)}
-    \item Bucles: \texttt{while (0)}, \texttt{do-while}, \texttt{for}
-    \item Llamadas a funciones: \texttt{helper()}
-\end{itemize}
-
-También se usaron programas más largos para verificar que el compilador mantuviera el orden correcto entre funciones, declaraciones y estructuras de control. Esos casos fueron útiles porque hicieron aparecer errores que no se veían en ejemplos demasiado pequeños.
+Para validar exhaustivamente el compilador, se diseñó una batería de pruebas en C (\texttt{test1.c} a \texttt{test5.c}) que evalúan el comportamiento del analizador ante diferentes niveles de estrés gramatical. Estas pruebas confirman el reconocimiento léxico, la correcta precedencia, la viabilidad de la tabla de símbolos y la precisión de la traducción intermedia y final.
 
 \subsection{Pruebas realizadas}
-Las siguientes pruebas se tomaron directamente de los archivos de entrada que se fueron usando durante el desarrollo.
 
-\paragraph{Prueba 1: estructuras de control, tablas y casos.}
-\begin{lstlisting}[language=C, caption={Contenido de input.txt}]
-int a = 0;
-int b;
-float c_10 = 100;
-char op = 'a';
+\paragraph{Prueba 1: Precedencia matemática y operadores lógicos (\texttt{test1.c})}
+Este archivo evalúa las expresiones aritméticas complejas, la precedencia forzada por paréntesis y la correcta agrupación de operadores booleanos \texttt{\&\&}, \texttt{||} y \texttt{!}. También incluye bucles para comprobar interrupciones condicionales.
 
-100 + 100;
-100;
-
-a;
-
-int i;
-int c;
-
-do
-{
-    for(i = 0; i < 100; i + 99)
-    {
-        
-    }
-}
-while(i > 10);
-
-struct MyStruct
-{
-    int var1;
-    float var2;
-    char var3;
-    int o;
-};
-\end{lstlisting}
-
-Esta prueba fue útil para verificar que el compilador pudiera manejar declaraciones sueltas, ciclos anidados, estructuras y expresiones que no necesariamente estaban ligadas a una asignación. También ayudó a revisar que la tabla de símbolos registrara correctamente variables y tipos.
-
-\paragraph{Prueba 2: expresiones booleanas y precedencia.}
-\begin{lstlisting}[language=C, caption={Contenido de input1.txt}]
+\begin{lstlisting}[language=C, caption={Contenido de test1.c}]
 int maxKeyframes = 100;
 int currentFrame = 0;
 float rotationSpeed = 2.5;
@@ -464,9 +327,19 @@ bool isShipActive = true;
 bool hasCollided = false;
 bool renderTorus = true;
 
+// Prueba 1: Precedencia matematica estandar
+// rotationSpeed * maxKeyframes debe evaluarse ANTES que la suma y resta
 float newPosition = currentFrame + rotationSpeed * maxKeyframes - 10 / 2;
+
+// Prueba 2: Precedencia forzada por parentesis
 float offsetPosition = (currentFrame + rotationSpeed) * maxKeyframes;
 
+print("Prueba de cadena en test1");
+print("Iniciando simulacion de cuadros");
+
+// Prueba 3: Operadores logicos, relacionales y NOT
+// El AND (&&) debe agruparse antes que el OR (||)
+// El NOT (!) debe resolverse de inmediato sobre renderTorus
 if (currentFrame < maxKeyframes && isShipActive == true || !renderTorus) 
 {
     currentFrame++;
@@ -475,45 +348,104 @@ else if (hasCollided || currentFrame >= 10 && renderTorus)
 {
     isShipActive = false;
 }
+
+print("Estado de la nave actualizado");
+
+// Prueba 4: Bucle while con multiples condiciones booleanas
+while (isShipActive && !hasCollided) 
+{
+    currentFrame = currentFrame + 1;
+    
+    if (currentFrame == 50) 
+    {
+        hasCollided = true;
+    }
+}
+
+print("Bucle principal finalizado");
+
+// Prueba 5: For validando logica de interrupcion booleana
+for (int i = 0; i < maxKeyframes; i++) 
+{
+    if (!isShipActive) 
+    {
+        break;
+    }
+}
 \end{lstlisting}
 
-Esta prueba sirvió para revisar la precedencia entre operadores aritméticos, relacionales y lógicos. También fue útil para comprobar que el parser respetara la agrupación correcta entre \texttt{&&}, \texttt{||} y \texttt{!}.
+\paragraph{Prueba 2: Funciones e I/O (\texttt{test2.c})}
+Se enfoca en la declaración y llamada de funciones con y sin valor de retorno. Valida la captura de datos por teclado con \texttt{read}, la salida con \texttt{print} y la correcta interrupción del flujo con regresos explícitos.
 
-\paragraph{Prueba 3: funciones, I/O y retornos.}
-\begin{lstlisting}[language=C, caption={Contenido de input2.txt}]
+\begin{lstlisting}[language=C, caption={Contenido de test2.c}]
 int maxFrames = 60;
 int currentFrame = 0;
 bool engineReady = false;
 int shipVelocity;
 
+// Prueba 1: Funcion VOID con I/O y return vacio
 void initGraphicsEngine()
 {
     engineReady = true;
+    print("Motor grafico inicializado");
     print(engineReady);
     return;
 }
 
+// Prueba 2: Funcion con tipo de retorno (INT), lectura de datos y return con operacion
 int getShipSpeed()
 {
     int inputSpeed;
     
-    read(inputSpeed);
+    print("Esperando velocidad de entrada");
+    read(inputSpeed); // Simulamos leer el input del teclado
     
     if (inputSpeed < 0)
     {
-        return 0;
+        print("Velocidad invalida detectada");
+        return 0; // Return con valor estatico
     }
     
-    return inputSpeed * 2;
+    print("Velocidad valida, aplicando multiplicador");
+    return inputSpeed * 2; // Return con operacion matematica
+}
+
+// Prueba 3: Llamadas a funciones dentro de estatutos e interrupciones
+void updateScene()
+{
+    if (!engineReady)
+    {
+        print("Motor no listo, se omite la escena");
+        return; // Rompemos la ejecucion si el motor no esta listo
+    }
+    
+    // Asignacion de una variable utilizando el valor de retorno de una funcion
+    shipVelocity = getShipSpeed();
+    
+    currentFrame = currentFrame + 1;
+    print("Escena actualizada correctamente");
+    print(currentFrame);
+}
+
+// Prueba 4: Estructura de control llamando a funciones aisladas
+void mainRenderLoop()
+{
+    initGraphicsEngine(); // Llamada a funcion como instruccion solitaria
+    
+    while (currentFrame < maxFrames && engineReady == true)
+    {
+        updateScene();
+    }
 }
 \end{lstlisting}
 
-Esta prueba fue importante porque mezcló funciones con valor de retorno, lectura por teclado, impresión y regresos explícitos. También ayudó a detectar detalles de traducción cuando se devolvía una expresión y no solo un valor vacío.
+\paragraph{Prueba 3: Ciclos anidados y optimización de código muerto (\texttt{test3.c})}
+Este archivo concentra ciclos \texttt{do-while} y llamadas a funciones. Su propósito principal es generar escenarios de código muerto (instrucciones posteriores a un \texttt{return}) para verificar la limpieza de la salida intermedia durante la fase de optimización.
 
-\paragraph{Prueba 4: optimización y salida final.}
-\begin{lstlisting}[language=C, caption={Contenido de input3.txt}]
+\begin{lstlisting}[language=C, caption={Contenido de test3.c}]
 int helper()
 {
+    print("Calculando valor auxiliar");
     return 4;
 }
 
@@ -525,6 +457,7 @@ int main()
     int d = c * 4;
     bool flag = true;
 
+    print("Inicio de test de expresiones");
     print(d);
 
     if (1 && 0 || !0)
@@ -536,6 +469,8 @@ int main()
     {
         d = 99;
     }
+
+    print("Bloque condicional evaluado");
 
     while (0)
     {
@@ -549,57 +484,333 @@ int main()
     }
     while (false);
 
+    print("Bucle do-while completado");
+
     c = helper();
     print(c);
+
+    print("Fin de test principal");
 
     return d;
     a = 100;
 }
 \end{lstlisting}
 
-Esta fue la prueba más completa, porque reunió constantes, expresiones booleanas, ciclos, llamadas a funciones y código muerto después de un retorno. Fue la que mejor permitió comprobar si la parte de optimización y el código final realmente estaban funcionando.
+\paragraph{Prueba 4: Estructuras y selección múltiple (\texttt{test4.c})}
+Representa un escenario de mayor complejidad gramatical. Incorpora la anidación de condicionales con declaraciones de estructuras \texttt{struct} y pone a prueba el mecanismo completo de bifurcación mediante \texttt{switch}, evaluando \texttt{case}, \texttt{default} y escapes con \texttt{break}.
+
+\begin{lstlisting}[language=C, caption={Contenido de test4.c}]
+struct EngineCore
+{
+    int throttle;
+    int temperature;
+    bool armed;
+};
+
+struct NavigationPack
+{
+    float altitude;
+    float velocity;
+    char mode;
+    bool locked;
+};
+
+int boostLevel = 3;
+int safetyMargin = 7;
+bool telemetryReady = true;
+char autopilotMode = 'A';
+
+int calibrateCore()
+{
+    int base = 2;
+    int factor = 5;
+    int total = base + factor * 2;
+
+    print("Calibrando nucleo principal");
+
+    if (total > 10 && telemetryReady == true)
+    {
+        total = total - 1;
+    }
+    else
+    {
+        total = total + 1;
+    }
+
+    while (total < 20)
+    {
+        total = total + 2;
+        if (total == 16)
+        {
+            break;
+        }
+    }
+
+    print("Calibracion principal completada");
+
+    return total;
+}
+
+void runDiagnostics()
+{
+    int iteration = 0;
+    int status = 0;
+    int coreResult = calibrateCore();
+
+    print(coreResult);
+    print("Ejecutando diagnosticos del sistema");
+
+    for (int i = 0; i < 4; i++)
+    {
+        iteration = iteration + 1;
+        status = status + i;
+
+        if (i == 2)
+        {
+            status = status + 5;
+        }
+    }
+
+    do
+    {
+        iteration = iteration - 1;
+        status = status + 1;
+    }
+    while (iteration > 1);
+
+    print("Diagnostico de ciclo completado");
+
+    switch (status)
+    {
+        case 0:
+            print(status);
+            status = status + 1;
+            break;
+        case 3:
+            if (status < 10)
+            {
+                status = status + 10;
+            }
+            else
+            {
+                status = status + 20;
+            }
+            break;
+        default:
+            while (status < 25)
+            {
+                status = status + 4;
+            }
+            break;
+    }
+
+    return;
+}
+
+int main()
+{
+    int initial = 1;
+    int processed = 0;
+    bool engineOn = true;
+
+    print("Arrancando rutina principal");
+    read(initial);
+
+    processed = calibrateCore();
+    if (initial < processed || !engineOn)
+    {
+        processed = processed + boostLevel;
+    }
+    else if (telemetryReady && engineOn)
+    {
+        processed = processed + safetyMargin;
+    }
+    else
+    {
+        processed = processed - 1;
+    }
+
+    runDiagnostics();
+    print(processed);
+    print("Rutina principal finalizada");
+
+    return processed;
+}
+\end{lstlisting}
+
+\paragraph{Prueba 5: Simulación de misión de vuelo (\texttt{test5.c})}
+Es el archivo más riguroso, diseñado para empujar los límites del analizador. Integra la declaración de múltiples estructuras, funciones encadenadas que alteran el estado global, condicionales lógicos extendidos, bucles anidados y bloques de selección múltiple.
+
+\begin{lstlisting}[language=C, caption={Contenido de test5.c}]
+struct FlightControl
+{
+    int speed;
+    int altitude;
+    bool enabled;
+};
+
+struct PayloadBay
+{
+    int mass;
+    char status;
+    bool sealed;
+};
+
+int globalCounter = 0;
+int targetAltitude = 120;
+bool missionActive = true;
+bool payloadReady = false;
+char missionPhase = 'B';
+
+int computeEnergy()
+{
+    int base = 8;
+    int multiplier = 3;
+    int energy = base * multiplier + 4;
+
+    print("Calculando energia de vuelo");
+
+    if (energy >= 28)
+    {
+        energy = energy - 2;
+    }
+    else
+    {
+        energy = energy + 2;
+    }
+
+    return energy;
+}
+
+void manageFlight()
+{
+    int cycle = 0;
+    int flightEnergy = computeEnergy();
+
+    print("Gestionando secuencia de vuelo");
+
+    while (cycle < 3 && missionActive == true)
+    {
+        cycle = cycle + 1;
+        globalCounter = globalCounter + cycle;
+
+        if (cycle == 1)
+        {
+            payloadReady = true;
+        }
+        else if (cycle == 2)
+        {
+            payloadReady = false;
+        }
+        else
+        {
+            payloadReady = true;
+        }
+    }
+
+    do
+    {
+        flightEnergy = flightEnergy - 1;
+        targetAltitude = targetAltitude + 1;
+    }
+    while (flightEnergy > 20);
+
+    print("Ajustando modo de mision");
+
+    switch (missionPhase)
+    {
+        case 'A':
+            print(globalCounter);
+            break;
+        case 'B':
+            if (missionActive && payloadReady == false)
+            {
+                targetAltitude = targetAltitude + 5;
+            }
+            else
+            {
+                targetAltitude = targetAltitude + 10;
+            }
+            break;
+        default:
+            while (globalCounter < 3)
+            {
+                globalCounter = globalCounter + 1;
+            }
+            break;
+    }
+
+    return;
+}
+
+int missionControl()
+{
+    int result = 0;
+    int localValue = 5;
+
+    print("Iniciando control de mision");
+    result = computeEnergy();
+    result = result + localValue;
+
+    if (result > targetAltitude && payloadReady == false || missionActive)
+    {
+        result = result + 1;
+    }
+
+    for (int step = 0; step < 5; step++)
+    {
+        if (step == 4)
+        {
+            break;
+        }
+
+        result = result + step;
+    }
+
+    manageFlight();
+    print(result);
+    print("Control de mision completado");
+
+    return result;
+}
+\end{lstlisting}
 
 \subsection{Archivos generados por el compilador}
-Durante la ejecución del proyecto, el compilador exportó varios archivos de texto para revisar cada etapa por separado:
+Durante la compilación de cualquiera de los archivos de prueba anteriores, el sistema exporta de manera automática los siguientes reportes dentro de la carpeta \texttt{output/}:
 \begin{itemize}[label={-}]
-    \item \texttt{tokens.txt}, con la lista de tokens reconocidos.
-    \item \texttt{table.txt}, con tablas auxiliares de tokens y clasificaciones.
-    \item \texttt{tabla\_simbolos.txt}, con las variables y funciones registradas.
-    \item \texttt{codigo\_intermedio.txt}, con la salida de tres direcciones.
-    \item \texttt{codigo\_intermedio\_optimizado.txt}, con la versión mejorada del intermedio.
-    \item \texttt{codigo\_final.txt}, con la traducción a pseudocódigo de ensamblador simple.
+    \item \texttt{tabla\_tokens.txt}: Reporte del lexer con la numeración, lexema y clase de cada token reconocido.
+    \item \texttt{tabla\_variables.txt}: Resumen de clasificación léxica separando variables, cadenas y errores detectados.
+    \item \texttt{tabla\_simbolos.txt}: Registro oficial del parser listando nombres, tipos (\texttt{int}, \texttt{struct}, \texttt{void}, etc.) y categorías.
+    \item \texttt{codigo\_intermedio.txt}: El código fuente linealizado en formato de tres direcciones nativo.
+    \item \texttt{codigo\_intermedio\_optimizado.txt}: La versión depurada del archivo anterior, resultado del plegado y la eliminación de redundancias.
+    \item \texttt{codigo\_final.txt}: La traducción definitiva a los mnemónicos de ensamblador virtual.
 \end{itemize}
 
-Tener estos archivos separados fue útil porque permitió revisar cada etapa sin mezclar todo en una sola salida. Así se hizo más fácil comparar el código original, el intermedio, la versión optimizada y la traducción final.
-
-\subsection{Resolución de problemas durante las pruebas}
-Las pruebas fueron una parte clave del trabajo. Ahí salieron varios detalles que no se notaban al revisar el código a simple vista. Por ejemplo, algunas reglas de la gramática dejaban una construcción con un símbolo extra al final, y en otras ocasiones la salida generada tenía instrucciones redundantes después de un salto o un retorno.
-
-La solución fue ir corrigiendo cada etapa por separado: primero el lexer, luego el parser, después el intermedio y al final la traducción a código final. Esa forma de trabajo hizo posible localizar los errores sin perder tiempo buscando en todo el proyecto a la vez.
+El aislamiento de estas salidas en archivos independientes facilitó enormemente la auditoría y depuración manual durante el ciclo de vida del proyecto.
 
 \section{Resultados obtenidos}
-Los resultados obtenidos muestran que el compilador cumple los objetivos centrales planteados al inicio del proyecto:
+Los resultados de la ejecución sobre la batería de pruebas confirman que el compilador cumple satisfactoriamente con los objetivos planteados:
 \begin{itemize}[label={-}]
-    \item El lenguaje puede analizarse y traducirse correctamente.
-    \item Se genera información semántica en una tabla de símbolos.
-    \item Se obtiene código intermedio de tres direcciones.
-    \item El intermedio puede optimizarse de forma básica.
-    \item El código final conserva la lógica original del programa.
+    \item El lenguaje extendido (con \texttt{struct} y \texttt{switch}) es analizado léxica y sintácticamente sin conflictos o ambigüedades.
+    \item Se extrae y consolida información semántica precisa en la tabla de símbolos.
+    \item El proceso de traducción produce código intermedio lógico, secuencial y completamente funcional.
+    \item El módulo de optimización demuestra la capacidad de simplificar expresiones aritméticas estáticas y reducir la entropía del código generado.
+    \item El seudoensamblador final refleja un mapeo fiel a la lógica concebida en el programa original en C.
 \end{itemize}
 
 \section{Conclusiones}
-El proyecto permitió integrar varias fases del proceso de compilación en una sola herramienta funcional. Aunque la implementación es académica y simplificada, cubre los lineamientos fundamentales del curso: análisis léxico, análisis sintáctico, traducción dirigida por la sintaxis, generación de intermedio, optimización básica y código final.
+Este proyecto logró integrar con éxito todas las fases teóricas del proceso de compilación dentro de una herramienta funcional y cohesionada. Aunque la implementación mantiene un carácter académico, la cobertura de los lineamientos del curso es total: desde el reconocimiento de expresiones regulares hasta la emisión de código final, pasando por la indispensable traducción dirigida por la sintaxis.
 
-Durante el desarrollo se notó que una buena parte del trabajo real no está solo en hacer que el compilador funcione, sino en ir puliendo detalles: conflictos de gramática, mensajes de error, salida redundante y pruebas que obligan a corregir casos especiales. Justamente por eso el proyecto termina siendo útil para entender cómo se conectan todas las fases de un compilador.
+El desarrollo iterativo dejó como gran aprendizaje que el reto de un compilador no radica únicamente en escribir reglas de gramática correctas, sino en orquestar el flujo de datos: gestionar lexemas, resolver precedencias lógicas cruzadas y asegurar que los atributos se propaguen sin pérdida a través del árbol de derivación.
 
-Como mejora futura se podría implementar manejo de parámetros en funciones, recursividad, un sistema de tipos más riguroso y una máquina virtual que ejecute directamente el código generado. También sería buena idea añadir optimizaciones más fuertes para compactar todavía más el código final.
+Como prospectiva técnica, las mejoras naturales para iteraciones futuras incluirían la implementación del paso de parámetros dinámicos hacia funciones, el soporte nativo para algoritmos recursivos, la verificación estricta del sistema de tipos (Type Checking) previo a la generación de código, y el desarrollo de una máquina virtual (VM) en C capaz de ingerir y ejecutar directamente el archivo \texttt{codigo\_final.txt}.
 
 \section{Tecnologías utilizadas}
 \begin{itemize}[label={-}]
-    \item C.
-    \item Flex para el análisis léxico.
-    \item Bison para el análisis sintáctico.
-    \item LaTeX para la documentación.
+    \item \textbf{C}: Lenguaje anfitrión para la lógica del compilador y estructuras de datos subyacentes.
+    \item \textbf{Flex}: Herramienta de generación del analizador léxico.
+    \item \textbf{Bison}: Herramienta de generación del analizador sintáctico (LALR).
+    \item \textbf{LaTeX}: Sistema de composición de textos empleado para la documentación técnica.
 \end{itemize}
 
 \end{document}

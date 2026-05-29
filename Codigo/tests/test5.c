@@ -41,7 +41,7 @@ int computeEnergy()
 void manageFlight()
 {
     int cycle = 0;
-    int flightEnergy = computeEnergy();
+    int flightEnergy = computeEnergy();lllll
 
     print("Gestionando secuencia de vuelo");
 

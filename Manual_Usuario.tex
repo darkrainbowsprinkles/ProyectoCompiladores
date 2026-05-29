@@ -1,0 +1,312 @@
+\documentclass[12pt]{article}
+
+\usepackage[spanish, es-noshorthands]{babel}
+\usepackage[a4paper, margin=3cm]{geometry}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{xcolor}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{enumitem}
+\usepackage{hyperref}
+\usepackage{listings}
+\usepackage{caption}
+
+\definecolor{codebg}{RGB}{248,248,248}
+\definecolor{codeframe}{RGB}{210,210,210}
+\definecolor{codekeyword}{RGB}{0,92,150}
+\definecolor{codestring}{RGB}{160,60,0}
+\definecolor{codecomment}{RGB}{95,95,95}
+\definecolor{codeident}{RGB}{70,70,70}
+
+\lstdefinestyle{reportstyle}{
+    backgroundcolor=\color{codebg},
+    frame=single,
+    rulecolor=\color{codeframe},
+    basicstyle=\ttfamily\small,
+    keywordstyle=\color{codekeyword}\bfseries,
+    stringstyle=\color{codestring},
+    commentstyle=\color{codecomment}\itshape,
+    identifierstyle=\color{codeident},
+    showstringspaces=false,
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    stepnumber=1,
+    numbersep=8pt,
+    tabsize=4,
+    breaklines=true,
+    breakatwhitespace=true,
+    columns=fullflexible,
+    captionpos=b,
+    keepspaces=true,
+    xleftmargin=1em,
+    framexleftmargin=0.8em
+}
+
+\lstset{style=reportstyle}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=codekeyword,
+    urlcolor=codekeyword,
+    pdftitle={Manual de usuario del compilador de mini-lenguaje},
+    pdfauthor={Ortega Novoa Octavio}
+}
+
+\begin{document}
+
+\begin{titlepage}
+\begin{center}
+
+\begin{minipage}{0.49\textwidth}
+\begin{flushleft}
+\includegraphics[scale=0.12]{Imagenes/UNAM_logo.png}
+\end{flushleft}
+\end{minipage}
+\begin{minipage}{0.49\textwidth}
+\begin{flushright}
+\includegraphics[scale=0.18]{Imagenes/LogoIngenieria.png}
+\end{flushright}
+\end{minipage}
+
+\vfill
+{\scshape\Large \textbf{UNIVERSIDAD NACIONAL AUTÓNOMA DE MÉXICO}} \\[4mm]
+{\scshape\large \textbf{FACULTAD DE INGENIERÍA}} \\[8mm]
+
+{\Large \textbf{Compiladores}} \\[4mm]
+{\large Semestre 2026-2} \\[11mm]
+
+{\Huge \textbf{Manual de usuario: Compilador de un mini-lenguaje con funciones, estructuras de control y expresiones booleanas}} \\[20mm]
+
+\begin{tabular}{rl}
+\textbf{Profesor:} & MANUEL ENRIQUE CASTAÑEDA CASTAÑEDA \\[2mm]
+\textbf{Alumnos:} & Ortega Novoa Octavio \\
+                  & [Nombre del segundo alumno] \\
+                  & [Nombre del tercer alumno] \\[4mm]
+\textbf{Fecha de entrega:} & 18 de marzo de 2026 \\
+\end{tabular}
+
+\end{center}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+\section{Introducción}
+Este manual explica cómo preparar el entorno, compilar el proyecto y ejecutar el compilador desde PowerShell en Windows. También resume la estructura de archivos, los requisitos de instalación y el formato general de uso del lenguaje de entrada.
+
+El compilador fue desarrollado con Flex, Yacc/Bison y GCC. Su salida se organiza en archivos de texto dentro de \texttt{Codigo/output/}, lo que permite revisar tokens, variables, símbolos, código intermedio, código optimizado y código final de forma separada.
+
+\section{Requisitos}
+Antes de compilar el proyecto, el sistema debe contar con lo siguiente:
+\begin{itemize}[label={-}]
+    \item Windows con PowerShell.
+    \item Flex instalado y disponible en la terminal.
+    \item Yacc o Bison instalado y disponible como \texttt{yacc}.
+    \item GCC instalado y disponible en la terminal.
+    \item Permisos de escritura dentro de la carpeta del proyecto.
+\end{itemize}
+
+Si alguno de estos programas no está instalado, el compilador no podrá generarse correctamente.
+
+\subsection{Verificación rápida}
+Puedes comprobar que las herramientas estén disponibles con:
+\begin{lstlisting}[language={}, caption={Verificación de herramientas}]
+flex --version
+yacc --version
+gcc --version
+\end{lstlisting}
+
+Si alguno de esos comandos falla, primero instala o corrige la ruta de la herramienta correspondiente.
+
+\section{Estructura del proyecto}
+La carpeta principal del proyecto contiene estos elementos:
+\begin{itemize}[label={-}]
+    \item \texttt{Codigo/}: contiene el lexer, el parser, los archivos generados y los tests.
+    \item \texttt{Codigo/lexer.l}: especificación léxica.
+    \item \texttt{Codigo/parser.y}: gramática y acciones semánticas.
+    \item \texttt{Codigo/tests/}: programas de prueba.
+    \item \texttt{Codigo/output/}: archivos generados por el compilador.
+    \item \texttt{Reporte	extunderscore Proyecto.tex}: reporte técnico del proyecto.
+    \item \texttt{Manual	extunderscore Usuario.tex}: este manual.
+\end{itemize}
+
+\section{Compilación}
+La compilación debe hacerse dentro de la carpeta \texttt{Codigo}. El flujo recomendado es exactamente el siguiente:
+
+\begin{lstlisting}[language={}, caption={Compilación del compilador en PowerShell}]
+PS C:\Users\Choi Beomgyu\Desktop\College\Proyecto LFyA - Compiladores\Codigo> flex lexer.l
+PS C:\Users\Choi Beomgyu\Desktop\College\Proyecto LFyA - Compiladores\Codigo> yacc -y -d parser.y
+PS C:\Users\Choi Beomgyu\Desktop\College\Proyecto LFyA - Compiladores\Codigo> gcc lex.yy.c y.tab.c -o compiler.exe
+\end{lstlisting}
+
+Si todo sale bien, se generará el ejecutable \texttt{compiler.exe} dentro de \texttt{Codigo}.
+
+\subsection{Notas de compilación}
+\begin{itemize}[label={-}]
+    \item Debes ejecutar los comandos dentro de \texttt{Codigo}, no desde la raíz del proyecto.
+    \item Si Flex o Yacc no están en el PATH, PowerShell mostrará un error de comando no reconocido.
+    \item Si cambia el código fuente del lexer o del parser, es necesario volver a ejecutar los tres comandos anteriores.
+\end{itemize}
+
+\section{Ejecución}
+Una vez creado el ejecutable, el compilador se corre con un archivo fuente del directorio \texttt{tests}. El ejemplo usado en este proyecto es:
+
+\begin{lstlisting}[language={}, caption={Ejecución del compilador}]
+PS C:\Users\Choi Beomgyu\Desktop\College\Proyecto LFyA - Compiladores\Codigo> .\compiler.exe tests/test5.c
+\end{lstlisting}
+
+Cuando la compilación es correcta, la terminal suele mostrar mensajes parecidos a estos:
+
+\begin{lstlisting}[language={}, caption={Salida normal en terminal}]
+[Info] Analisis lexico completado.
+[Info] Analisis sintactico completado.
+[Info] Tabla de tokens generada en output/tabla_tokens.txt
+[Info] Tabla de variables generada en output/tabla_variables.txt
+[Info] Tabla de simbolos generada en output/tabla_simbolos.txt
+[Info] Codigo intermedio generado en output/codigo_intermedio.txt
+[Info] Codigo final generado en output/codigo_final.txt
+\end{lstlisting}
+
+También puedes ejecutar los demás programas de prueba cambiando el nombre del archivo:
+\begin{itemize}[label={-}]
+    \item \texttt{tests/test1.c}
+    \item \texttt{tests/test2.c}
+    \item \texttt{tests/test3.c}
+    \item \texttt{tests/test4.c}
+    \item \texttt{tests/test5.c}
+\end{itemize}
+
+\subsection{Importante}
+Los archivos de entrada deben escribirse con la sintaxis soportada por el compilador. Si el programa contiene errores léxicos o sintácticos, el compilador los reportará en consola y la salida generada puede quedar incompleta.
+
+\section{Salida generada}
+Cada ejecución produce archivos de texto en \texttt{Codigo/output/}. Los principales son:
+\begin{itemize}[label={-}]
+    \item \texttt{tabla\_tokens.txt}
+    \item \texttt{tabla\_variables.txt}
+    \item \texttt{tabla\_simbolos.txt}
+    \item \texttt{codigo\_intermedio.txt}
+    \item \texttt{codigo\_intermedio\_optimizado.txt}
+    \item \texttt{codigo\_final.txt}
+\end{itemize}
+
+\subsection{Qué contiene cada archivo}
+\begin{itemize}[label={-}]
+    \item \texttt{tabla\_tokens.txt}: lista de tokens reconocidos por el lexer.
+    \item \texttt{tabla\_variables.txt}: clasificación auxiliar de variables, cadenas y errores léxicos.
+    \item \texttt{tabla\_simbolos.txt}: variables, funciones y estructuras detectadas semánticamente.
+    \item \texttt{codigo\_intermedio.txt}: representación intermedia del programa.
+    \item \texttt{codigo\_intermedio\_optimizado.txt}: versión simplificada del intermedio.
+    \item \texttt{codigo\_final.txt}: traducción final a un pseudocódigo de ensamblador simple.
+\end{itemize}
+
+\subsection{Ejemplos de archivos}
+Después de ejecutar \texttt{.\\compiler.exe tests/test5.c}, los archivos pueden verse de forma aproximada así:
+
+\begin{lstlisting}[language={}, caption={Ejemplo de tabla de tokens}]
+ID, main
+LPAREN, (
+RPAREN, )
+LBRACE, {
+KEYWORD, struct
+ID, FlightControl
+KEYWORD, switch
+KEYWORD, case
+KEYWORD, break
+\end{lstlisting}
+
+\begin{lstlisting}[language={}, caption={Ejemplo de tabla de variables}]
+Nombre              Tipo      Categoria
+missionPhase        char      variable
+energyLevel         int       variable
+message             string    cadena
+tempValue           --        error
+\end{lstlisting}
+
+\begin{lstlisting}[language={}, caption={Ejemplo de tabla de símbolos}]
+Nombre              Tipo      Categoria
+manageFlight        void      funcion
+computeEnergy       int       funcion
+FlightControl       struct    estructura
+PayloadBay          struct    estructura
+\end{lstlisting}
+
+\begin{lstlisting}[language={}, caption={Ejemplo de código intermedio}]
+t1 = energyLevel + 5
+ifFalse t1 goto L1
+print "Estado nominal"
+goto L2
+L1:
+    print "Revisar sistema"
+L2:
+\end{lstlisting}
+
+\begin{lstlisting}[language={}, caption={Ejemplo de código final}]
+MOV R1, energyLevel
+ADD R1, 5
+JZ L1
+PRINT "Estado nominal"
+JMP L2
+L1:
+PRINT "Revisar sistema"
+L2:
+\end{lstlisting}
+
+\section{Cómo preparar un programa de entrada}
+Los archivos de prueba están dentro de \texttt{Codigo/tests/}. El compilador acepta programas que usan:
+\begin{itemize}[label={-}]
+    \item Declaraciones de variables.
+    \item Funciones.
+    \item Estructuras \texttt{struct}.
+    \item Condicionales \texttt{if} y \texttt{else}.
+    \item Ciclos \texttt{while}, \texttt{do-while} y \texttt{for}.
+    \item \texttt{switch/case/default/break}.
+    \item \texttt{print} con expresiones y cadenas de texto.
+\end{itemize}
+
+\subsection{Ejemplo mínimo}
+\begin{lstlisting}[language=C, caption={Programa de entrada mínimo}]
+int main()
+{
+    int value = 10;
+    print("Inicio del programa");
+    print(value);
+    return value;
+}
+\end{lstlisting}
+
+\section{Consejos de uso}
+\begin{itemize}[label={-}]
+    \item Guarda el archivo fuente dentro de \texttt{Codigo/tests/} para evitar rutas largas.
+    \item Recompila si cambias \texttt{lexer.l} o \texttt{parser.y}.
+    \item Revisa \texttt{Codigo/output/} después de cada ejecución para validar los resultados.
+    \item Si el compilador no arranca, confirma primero que \texttt{flex}, \texttt{yacc} y \texttt{gcc} respondan en la terminal.
+\end{itemize}
+
+\section{Resolución de problemas comunes}
+\subsection{Flex o Yacc no se reconocen}
+Si PowerShell muestra que \texttt{flex} o \texttt{yacc} no existen, significa que la herramienta no está instalada o no está agregada al PATH.
+
+\subsection{GCC no genera el ejecutable}
+Verifica que los archivos \texttt{lex.yy.c} y \texttt{y.tab.c} sí se generaron antes de ejecutar GCC. Si no existen, repite la compilación desde \texttt{flex} y \texttt{yacc}.
+
+\subsection{No aparece la salida en output}
+Revisa que el programa se haya ejecutado sin errores. Si el archivo de entrada tiene fallos, algunos archivos de salida pueden quedar vacíos o incompletos.
+
+\section{Flujo recomendado}
+El uso normal del proyecto es el siguiente:
+\begin{enumerate}[label={\arabic*.}]
+    \item Abrir PowerShell.
+    \item Entrar a la carpeta \texttt{Codigo}.
+    \item Ejecutar \texttt{flex lexer.l}.
+    \item Ejecutar \texttt{yacc -y -d parser.y}.
+    \item Ejecutar \texttt{gcc lex.yy.c y.tab.c -o compiler.exe}.
+    \item Correr \texttt{.\\compiler.exe tests/test5.c} o el test que quieras revisar.
+    \item Revisar los archivos generados en \texttt{Codigo/output/}.
+\end{enumerate}
+
+\section{Cierre}
+Este manual resume los pasos necesarios para usar el compilador en Windows. Siguiendo el orden de compilación y ejecución indicado, cualquier usuario con Flex, Yacc y GCC instalados puede generar el ejecutable y probar los archivos de entrada del proyecto sin depender de instrucciones adicionales.
+
+\end{document}
