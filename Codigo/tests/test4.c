@@ -24,6 +24,8 @@ int calibrateCore()
     int factor = 5;
     int total = base + factor * 2;
 
+    print("Calibrando nucleo principal");
+
     if (total > 10 && telemetryReady == true)
     {
         total = total - 1;
@@ -42,6 +44,8 @@ int calibrateCore()
         }
     }
 
+    print("Calibracion principal completada");
+
     return total;
 }
 
@@ -52,6 +56,7 @@ void runDiagnostics()
     int coreResult = calibrateCore();
 
     print(coreResult);
+    print("Ejecutando diagnosticos del sistema");
 
     for (int i = 0; i < 4; i++)
     {
@@ -70,6 +75,8 @@ void runDiagnostics()
         status = status + 1;
     }
     while (iteration > 1);
+
+    print("Diagnostico de ciclo completado");
 
     switch (status)
     {
@@ -104,6 +111,7 @@ int main()
     int processed = 0;
     bool engineOn = true;
 
+    print("Arrancando rutina principal");
     read(initial);
 
     processed = calibrateCore();
@@ -122,6 +130,7 @@ int main()
 
     runDiagnostics();
     print(processed);
+    print("Rutina principal finalizada");
 
     return processed;
 }

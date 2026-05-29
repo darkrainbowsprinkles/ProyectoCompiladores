@@ -1,125 +1,59 @@
-struct FlightControl begin
-field int speed
-field int altitude
-field bool enabled
-struct FlightControl end
-struct PayloadBay begin
-field int mass
-field char status
-field bool sealed
-struct PayloadBay end
-globalCounter = 0
-targetAltitude = 120
-missionActive = true
-payloadReady = false
-missionPhase = 'B'
-function computeEnergy int begin
-base = 8
-multiplier = 3
-t1 = base * multiplier
-t2 = t1 + 4
-energy = t2
-t3 = energy >= 28
-ifFalse t3 goto L1
-t4 = energy - 2
-energy = t4
-goto L2
-L1:
-t5 = energy + 2
-energy = t5
-L2:
-return energy
-end function computeEnergy
-function manageFlight void begin
-cycle = 0
-t6 = call computeEnergy
-flightEnergy = t6
-L7:
-t7 = cycle < 3
-t8 = missionActive == true
+maxKeyframes = 100
+currentFrame = 0
+rotationSpeed = 2.5
+isShipActive = true
+hasCollided = false
+renderTorus = true
+t1 = rotationSpeed * maxKeyframes
+t2 = currentFrame + t1
+t3 = 10 / 2
+t4 = t2 - t3
+newPosition = t4
+t5 = currentFrame + rotationSpeed
+t6 = t5 * maxKeyframes
+offsetPosition = t6
+print "Prueba de cadena en test1"
+print "Iniciando simulacion de cuadros"
+t7 = currentFrame < maxKeyframes
+t8 = isShipActive == true
 t9 = t7 && t8
-ifFalse t9 goto L8
-t10 = cycle + 1
-cycle = t10
-t11 = globalCounter + cycle
-globalCounter = t11
-t12 = cycle == 1
-ifFalse t12 goto L5
-payloadReady = true
-goto L6
-L5:
-t13 = cycle == 2
-ifFalse t13 goto L3
-payloadReady = false
-goto L4
+t10 = ! renderTorus
+t11 = t9 || t10
+ifFalse t11 goto L2
+t12 = currentFrame + 1
+currentFrame = t12
+goto L3
+L2:
+t13 = currentFrame >= 10
+t14 = t13 && renderTorus
+t15 = hasCollided || t14
+ifFalse t15 goto L1
+isShipActive = false
+L1:
 L3:
-payloadReady = true
+print "Estado de la nave actualizado"
+L5:
+t16 = ! hasCollided
+t17 = isShipActive && t16
+ifFalse t17 goto L6
+t18 = currentFrame + 1
+currentFrame = t18
+t19 = currentFrame == 50
+ifFalse t19 goto L4
+hasCollided = true
 L4:
+goto L5
 L6:
-goto L7
+print "Bucle principal finalizado"
+i = 0
 L8:
-L9:
-t14 = flightEnergy - 1
-flightEnergy = t14
-t15 = targetAltitude + 1
-targetAltitude = t15
-t16 = flightEnergy > 20
-if t16 goto L9
-switch missionPhase begin
-case 'A':
-print globalCounter
-case 'B':
-t17 = payloadReady == false
-t18 = missionActive && t17
-ifFalse t18 goto L10
-t19 = targetAltitude + 5
-targetAltitude = t19
-goto L11
-L10:
-t20 = targetAltitude + 10
-targetAltitude = t20
-L11:
-default:
-L12:
-t21 = globalCounter < 3
-ifFalse t21 goto L13
-t22 = globalCounter + 1
-globalCounter = t22
-goto L12
-L13:
-switch end
-return
-end function manageFlight
-function missionControl int begin
-result = 0
-localValue = 5
-t23 = call computeEnergy
-result = t23
-t24 = result + localValue
-result = t24
-t25 = result > targetAltitude
-t26 = payloadReady == false
-t27 = t25 && t26
-t28 = t27 || missionActive
-ifFalse t28 goto L14
-t29 = result + 1
-result = t29
-L14:
-step = 0
-L16:
-t30 = step < 5
-ifFalse t30 goto L17
-t32 = step == 4
-ifFalse t32 goto L15
+t20 = i < maxKeyframes
+ifFalse t20 goto L9
+t22 = ! isShipActive
+ifFalse t22 goto L7
 break
-L15:
-t33 = result + step
-result = t33
-t31 = step + 1
-step = t31
-goto L16
-L17:
-t34 = call manageFlight
-print result
-return result
-end function missionControl
+L7:
+t21 = i + 1
+i = t21
+goto L8
+L9:

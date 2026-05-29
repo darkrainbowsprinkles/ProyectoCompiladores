@@ -1,84 +1,11 @@
-struct FlightControl begin
-field int speed
-field int altitude
-field bool enabled
-struct FlightControl end
-struct PayloadBay begin
-field int mass
-field char status
-field bool sealed
-struct PayloadBay end
-globalCounter = 0
-targetAltitude = 120
-missionActive = true
-payloadReady = false
-missionPhase = 'B'
-function computeEnergy int begin
-base = 8
-multiplier = 3
-t1 = 24
-t2 = 24
-energy = 24
-t3 = 1
-t4 = 24
-energy = 24
-goto L2
-L1:
-t5 = 24
-energy = 24
-L2:
-return energy
-L7:
-t7 = 0
-t8 = 0
-t9 = 0
-goto L8
-L5:
-t13 = 1
-payloadReady = false
-goto L4
-L3:
-payloadReady = true
-L4:
-L6:
-goto L7
-L8:
-L9:
-t14 = 0
-flightEnergy = 0
-t15 = 120
-targetAltitude = 120
-t16 = 0
-switch missionPhase begin
-case 'A':
-print globalCounter
-case 'B':
-t17 = 0
-t18 = 0
-goto L10
-L10:
-t20 = 120
-targetAltitude = 120
-L11:
-default:
-L12:
-t21 = 0
-goto L13
-L13:
-switch end
-return
-L14:
-step = 0
-L16:
-t30 = 0
-goto L17
-L15:
-t33 = 0
-result = 0
-t31 = 0
-step = 0
-goto L16
-L17:
-t34 = call manageFlight
-print result
-return result
+maxKeyframes = 100
+currentFrame = 0
+rotationSpeed = 2.5
+isShipActive = true
+hasCollided = false
+renderTorus = true
+t1 = 250
+t2 = 250
+t3 =  / 
+t4 = 250
+newPosition = 250

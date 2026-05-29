@@ -24,6 +24,8 @@ int computeEnergy()
     int multiplier = 3;
     int energy = base * multiplier + 4;
 
+    print("Calculando energia de vuelo");
+
     if (energy >= 28)
     {
         energy = energy - 2;
@@ -40,6 +42,8 @@ void manageFlight()
 {
     int cycle = 0;
     int flightEnergy = computeEnergy();
+
+    print("Gestionando secuencia de vuelo");
 
     while (cycle < 3 && missionActive == true)
     {
@@ -66,6 +70,8 @@ void manageFlight()
         targetAltitude = targetAltitude + 1;
     }
     while (flightEnergy > 20);
+
+    print("Ajustando modo de mision");
 
     switch (missionPhase)
     {
@@ -98,6 +104,7 @@ int missionControl()
     int result = 0;
     int localValue = 5;
 
+    print("Iniciando control de mision");
     result = computeEnergy();
     result = result + localValue;
 
@@ -118,6 +125,7 @@ int missionControl()
 
     manageFlight();
     print(result);
+    print("Control de mision completado");
 
     return result;
 }

@@ -1,64 +1,11 @@
-MOV globalCounter, 0
-MOV targetAltitude, 120
-MOV missionActive, true
-MOV payloadReady, false
-MOV missionPhase, 'B'
-computeEnergy PROC ; int
-MOV base, 8
-MOV multiplier, 3
-MOV t1, 24
-MOV t2, 24
-MOV energy, 24
-MOV t3, 1
-MOV t4, 24
-MOV energy, 24
-JMP L2
-L1:
-MOV t5, 24
-MOV energy, 24
-L2:
-RET energy
-L7:
-MOV t7, 0
-MOV t8, 0
-MOV t9, 0
-JMP L8
-MOV t13, 1
-MOV payloadReady, false
-JMP L4
-MOV payloadReady, true
-L4:
-JMP L7
-L8:
-MOV t14, 0
-MOV flightEnergy, 0
-MOV t15, 120
-MOV targetAltitude, 120
-MOV t16, 0
-case 'A':
-PRINT globalCounter
-case 'B':
-MOV t17, 0
-MOV t18, 0
-JMP L10
-L10:
-MOV t20, 120
-MOV targetAltitude, 120
-default:
-MOV t21, 0
-JMP L13
-L13:
-RET
-MOV step, 0
-L16:
-MOV t30, 0
-JMP L17
-MOV t33, 0
-MOV result, 0
-MOV t31, 0
-MOV step, 0
-JMP L16
-L17:
-CALL manageFlight
-PRINT result
-RET result
+MOV maxKeyframes, 100
+MOV currentFrame, 0
+MOV rotationSpeed, 2.5
+MOV isShipActive, true
+MOV hasCollided, false
+MOV renderTorus, true
+MOV t1, 250
+MOV t2, 250
+MOV t3, /
+MOV t4, 250
+MOV newPosition, 250

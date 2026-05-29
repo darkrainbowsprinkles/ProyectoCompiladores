@@ -7,6 +7,7 @@ int shipVelocity;
 void initGraphicsEngine()
 {
     engineReady = true;
+    print("Motor grafico inicializado");
     print(engineReady);
     return;
 }
@@ -16,13 +17,16 @@ int getShipSpeed()
 {
     int inputSpeed;
     
+    print("Esperando velocidad de entrada");
     read(inputSpeed); // Simulamos leer el input del teclado
     
     if (inputSpeed < 0)
     {
+        print("Velocidad invalida detectada");
         return 0; // Return con valor estatico
     }
     
+    print("Velocidad valida, aplicando multiplicador");
     return inputSpeed * 2; // Return con operacion matematica
 }
 
@@ -31,6 +35,7 @@ void updateScene()
 {
     if (!engineReady)
     {
+        print("Motor no listo, se omite la escena");
         return; // Rompemos la ejecucion si el motor no esta listo
     }
     
@@ -38,6 +43,7 @@ void updateScene()
     shipVelocity = getShipSpeed();
     
     currentFrame = currentFrame + 1;
+    print("Escena actualizada correctamente");
     print(currentFrame);
 }
 

@@ -66,6 +66,7 @@ emptySpace [ \t\n\r]
 {digit}+\.{digit}+                  { registerToken(yytext, "Numeros"); yylval.string_val = strdup(yytext); return FLOAT_NUMBER; }
 {comparison}                        { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return COMPARISON; }    
 {emptySpace}+                       { /* Ignorar espacios */ }
+\"([^\"\n]|\\.)*\"              { registerToken(yytext, "Cadenas"); yylval.string_val = strdup(yytext); return CHAR_LITERAL; }
 '{character}?'                      { registerToken(yytext, "Cadenas"); yylval.string_val = strdup(yytext); return CHAR_LITERAL; }
 "="                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return ASSIGNATION; }
 "+"                                 { registerToken(yytext, "Operadores"); yylval.string_val = strdup(yytext); return PLUS; }
@@ -186,7 +187,6 @@ void readInputFile(int argc, char *argv[])
         exit(1);
     }
 }
-
 int yywrap() 
 { 
     return 1; 

@@ -1,5 +1,6 @@
 int helper()
 {
+    print("Calculando valor auxiliar");
     return 4;
 }
 
@@ -11,6 +12,7 @@ int main()
     int d = c * 4;
     bool flag = true;
 
+    print("Inicio de test de expresiones");
     print(d);
 
     if (1 && 0 || !0)
@@ -22,6 +24,8 @@ int main()
     {
         d = 99;
     }
+
+    print("Bloque condicional evaluado");
 
     while (0)
     {
@@ -35,8 +39,12 @@ int main()
     }
     while (false);
 
+    print("Bucle do-while completado");
+
     c = helper();
     print(c);
+
+    print("Fin de test principal");
 
     return d;
     a = 100;
