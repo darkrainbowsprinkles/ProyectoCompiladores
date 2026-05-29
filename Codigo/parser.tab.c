@@ -1221,7 +1221,7 @@ void writeFinalCode()
 }
 
 /* Line 371 of yacc.c  */
-#line 1225 "y.tab.c"
+#line 1225 "parser.tab.c"
 
 # ifndef YY_NULL
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -1240,9 +1240,9 @@ void writeFinalCode()
 #endif
 
 /* In a future release of Bison, this section will be replaced
-   by #include "y.tab.h".  */
-#ifndef YY_YY_Y_TAB_H_INCLUDED
-# define YY_YY_Y_TAB_H_INCLUDED
+   by #include "parser.tab.h".  */
+#ifndef YY_YY_PARSER_TAB_H_INCLUDED
+# define YY_YY_PARSER_TAB_H_INCLUDED
 /* Enabling traces.  */
 #ifndef YYDEBUG
 # define YYDEBUG 0
@@ -1301,50 +1301,6 @@ extern int yydebug;
      LOWER_THAN_ELSE = 299
    };
 #endif
-/* Tokens.  */
-#define IDENTIFIER 258
-#define INT_NUMBER 259
-#define FLOAT_NUMBER 260
-#define CHAR_LITERAL 261
-#define COMPARISON 262
-#define ASSIGNATION 263
-#define PLUS 264
-#define MINUS 265
-#define MULTIPLY 266
-#define DIVIDE 267
-#define INCREMENT 268
-#define DECREMENT 269
-#define AND 270
-#define OR 271
-#define NOT 272
-#define TRUE_LITERAL 273
-#define FALSE_LITERAL 274
-#define INT 275
-#define FLOAT 276
-#define CHAR 277
-#define FOR 278
-#define IF 279
-#define ELSE 280
-#define WHILE 281
-#define DO 282
-#define SWITCH 283
-#define BREAK 284
-#define CASE 285
-#define DEFAULT 286
-#define STRUCT 287
-#define OPEN_PARENTHESIS 288
-#define CLOSE_PARENTHESIS 289
-#define OPEN_BRACE 290
-#define CLOSE_BRACE 291
-#define SEMICOLON 292
-#define COLON 293
-#define BOOL 294
-#define VOID 295
-#define RETURN 296
-#define PRINT 297
-#define READ 298
-#define LOWER_THAN_ELSE 299
-
 
 
 #if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
@@ -1361,7 +1317,7 @@ typedef union YYSTYPE
 
 
 /* Line 387 of yacc.c  */
-#line 1365 "y.tab.c"
+#line 1321 "parser.tab.c"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
@@ -1384,12 +1340,12 @@ int yyparse ();
 #endif
 #endif /* ! YYPARSE_PARAM */
 
-#endif /* !YY_YY_Y_TAB_H_INCLUDED  */
+#endif /* !YY_YY_PARSER_TAB_H_INCLUDED  */
 
 /* Copy the second part of user declarations.  */
 
 /* Line 390 of yacc.c  */
-#line 1393 "y.tab.c"
+#line 1349 "parser.tab.c"
 
 #ifdef short
 # undef short
@@ -3517,7 +3473,7 @@ yyreduce:
 
 
 /* Line 1792 of yacc.c  */
-#line 3521 "y.tab.c"
+#line 3477 "parser.tab.c"
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires

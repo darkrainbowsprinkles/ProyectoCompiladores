@@ -1,0 +1,20 @@
+NOMBRE		TIPO		CATEGORIA
+------------------------------------------
+FlightControl		struct		structure
+PayloadBay		struct		structure
+globalCounter		int		variable
+targetAltitude		int		variable
+missionActive		bool		variable
+payloadReady		bool		variable
+missionPhase		char		variable
+base		int		variable
+multiplier		int		variable
+energy		int		variable
+computeEnergy		int		function
+cycle		int		variable
+flightEnergy		int		variable
+manageFlight		void		function
+result		int		variable
+localValue		int		variable
+step		int		variable
+missionControl		int		function

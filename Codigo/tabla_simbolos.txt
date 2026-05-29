@@ -1,9 +1,0 @@
-NOMBRE		TIPO		CATEGORIA
-------------------------------------------
-helper		int		function
-a		int		variable
-b		int		variable
-c		int		variable
-d		int		variable
-flag		bool		variable
-main		int		function

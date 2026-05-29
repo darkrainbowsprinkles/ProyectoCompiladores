@@ -1,0 +1,360 @@
+			Token			Clase
+
+0			struct			Palabras Reservadas
+1			FlightControl			Variables
+2			{			Simbolos Especiales
+3			int			Palabras Reservadas
+4			speed			Variables
+5			;			Simbolos Especiales
+6			int			Palabras Reservadas
+7			altitude			Variables
+8			;			Simbolos Especiales
+9			bool			Palabras Reservadas
+10			enabled			Variables
+11			;			Simbolos Especiales
+12			}			Simbolos Especiales
+13			;			Simbolos Especiales
+14			struct			Palabras Reservadas
+15			PayloadBay			Variables
+16			{			Simbolos Especiales
+17			int			Palabras Reservadas
+18			mass			Variables
+19			;			Simbolos Especiales
+20			char			Palabras Reservadas
+21			status			Variables
+22			;			Simbolos Especiales
+23			bool			Palabras Reservadas
+24			sealed			Variables
+25			;			Simbolos Especiales
+26			}			Simbolos Especiales
+27			;			Simbolos Especiales
+28			int			Palabras Reservadas
+29			globalCounter			Variables
+30			=			Operadores
+31			0			Numeros
+32			;			Simbolos Especiales
+33			int			Palabras Reservadas
+34			targetAltitude			Variables
+35			=			Operadores
+36			120			Numeros
+37			;			Simbolos Especiales
+38			bool			Palabras Reservadas
+39			missionActive			Variables
+40			=			Operadores
+41			true			Palabras Reservadas
+42			;			Simbolos Especiales
+43			bool			Palabras Reservadas
+44			payloadReady			Variables
+45			=			Operadores
+46			false			Palabras Reservadas
+47			;			Simbolos Especiales
+48			char			Palabras Reservadas
+49			missionPhase			Variables
+50			=			Operadores
+51			'B'			Cadenas
+52			;			Simbolos Especiales
+53			int			Palabras Reservadas
+54			computeEnergy			Variables
+55			(			Simbolos Especiales
+56			)			Simbolos Especiales
+57			{			Simbolos Especiales
+58			int			Palabras Reservadas
+59			base			Variables
+60			=			Operadores
+61			8			Numeros
+62			;			Simbolos Especiales
+63			int			Palabras Reservadas
+64			multiplier			Variables
+65			=			Operadores
+66			3			Numeros
+67			;			Simbolos Especiales
+68			int			Palabras Reservadas
+69			energy			Variables
+70			=			Operadores
+71			base			Variables
+72			*			Operadores
+73			multiplier			Variables
+74			+			Operadores
+75			4			Numeros
+76			;			Simbolos Especiales
+77			if			Palabras Reservadas
+78			(			Simbolos Especiales
+79			energy			Variables
+80			>=			Operadores
+81			28			Numeros
+82			)			Simbolos Especiales
+83			{			Simbolos Especiales
+84			energy			Variables
+85			=			Operadores
+86			energy			Variables
+87			-			Operadores
+88			2			Numeros
+89			;			Simbolos Especiales
+90			}			Simbolos Especiales
+91			else			Palabras Reservadas
+92			{			Simbolos Especiales
+93			energy			Variables
+94			=			Operadores
+95			energy			Variables
+96			+			Operadores
+97			2			Numeros
+98			;			Simbolos Especiales
+99			}			Simbolos Especiales
+100			return			Palabras Reservadas
+101			energy			Variables
+102			;			Simbolos Especiales
+103			}			Simbolos Especiales
+104			void			Palabras Reservadas
+105			manageFlight			Variables
+106			(			Simbolos Especiales
+107			)			Simbolos Especiales
+108			{			Simbolos Especiales
+109			int			Palabras Reservadas
+110			cycle			Variables
+111			=			Operadores
+112			0			Numeros
+113			;			Simbolos Especiales
+114			int			Palabras Reservadas
+115			flightEnergy			Variables
+116			=			Operadores
+117			computeEnergy			Variables
+118			(			Simbolos Especiales
+119			)			Simbolos Especiales
+120			;			Simbolos Especiales
+121			while			Palabras Reservadas
+122			(			Simbolos Especiales
+123			cycle			Variables
+124			<			Operadores
+125			3			Numeros
+126			&&			Operadores Logicos
+127			missionActive			Variables
+128			==			Operadores
+129			true			Palabras Reservadas
+130			)			Simbolos Especiales
+131			{			Simbolos Especiales
+132			cycle			Variables
+133			=			Operadores
+134			cycle			Variables
+135			+			Operadores
+136			1			Numeros
+137			;			Simbolos Especiales
+138			globalCounter			Variables
+139			=			Operadores
+140			globalCounter			Variables
+141			+			Operadores
+142			cycle			Variables
+143			;			Simbolos Especiales
+144			if			Palabras Reservadas
+145			(			Simbolos Especiales
+146			cycle			Variables
+147			==			Operadores
+148			1			Numeros
+149			)			Simbolos Especiales
+150			{			Simbolos Especiales
+151			payloadReady			Variables
+152			=			Operadores
+153			true			Palabras Reservadas
+154			;			Simbolos Especiales
+155			}			Simbolos Especiales
+156			else			Palabras Reservadas
+157			if			Palabras Reservadas
+158			(			Simbolos Especiales
+159			cycle			Variables
+160			==			Operadores
+161			2			Numeros
+162			)			Simbolos Especiales
+163			{			Simbolos Especiales
+164			payloadReady			Variables
+165			=			Operadores
+166			false			Palabras Reservadas
+167			;			Simbolos Especiales
+168			}			Simbolos Especiales
+169			else			Palabras Reservadas
+170			{			Simbolos Especiales
+171			payloadReady			Variables
+172			=			Operadores
+173			true			Palabras Reservadas
+174			;			Simbolos Especiales
+175			}			Simbolos Especiales
+176			}			Simbolos Especiales
+177			do			Palabras Reservadas
+178			{			Simbolos Especiales
+179			flightEnergy			Variables
+180			=			Operadores
+181			flightEnergy			Variables
+182			-			Operadores
+183			1			Numeros
+184			;			Simbolos Especiales
+185			targetAltitude			Variables
+186			=			Operadores
+187			targetAltitude			Variables
+188			+			Operadores
+189			1			Numeros
+190			;			Simbolos Especiales
+191			}			Simbolos Especiales
+192			while			Palabras Reservadas
+193			(			Simbolos Especiales
+194			flightEnergy			Variables
+195			>			Operadores
+196			20			Numeros
+197			)			Simbolos Especiales
+198			;			Simbolos Especiales
+199			switch			Palabras Reservadas
+200			(			Simbolos Especiales
+201			missionPhase			Variables
+202			)			Simbolos Especiales
+203			{			Simbolos Especiales
+204			case			Palabras Reservadas
+205			'A'			Cadenas
+206			:			Simbolos Especiales
+207			print			Palabras Reservadas
+208			(			Simbolos Especiales
+209			globalCounter			Variables
+210			)			Simbolos Especiales
+211			;			Simbolos Especiales
+212			break			Palabras Reservadas
+213			;			Simbolos Especiales
+214			case			Palabras Reservadas
+215			'B'			Cadenas
+216			:			Simbolos Especiales
+217			if			Palabras Reservadas
+218			(			Simbolos Especiales
+219			missionActive			Variables
+220			&&			Operadores Logicos
+221			payloadReady			Variables
+222			==			Operadores
+223			false			Palabras Reservadas
+224			)			Simbolos Especiales
+225			{			Simbolos Especiales
+226			targetAltitude			Variables
+227			=			Operadores
+228			targetAltitude			Variables
+229			+			Operadores
+230			5			Numeros
+231			;			Simbolos Especiales
+232			}			Simbolos Especiales
+233			else			Palabras Reservadas
+234			{			Simbolos Especiales
+235			targetAltitude			Variables
+236			=			Operadores
+237			targetAltitude			Variables
+238			+			Operadores
+239			10			Numeros
+240			;			Simbolos Especiales
+241			}			Simbolos Especiales
+242			break			Palabras Reservadas
+243			;			Simbolos Especiales
+244			default			Palabras Reservadas
+245			:			Simbolos Especiales
+246			while			Palabras Reservadas
+247			(			Simbolos Especiales
+248			globalCounter			Variables
+249			<			Operadores
+250			3			Numeros
+251			)			Simbolos Especiales
+252			{			Simbolos Especiales
+253			globalCounter			Variables
+254			=			Operadores
+255			globalCounter			Variables
+256			+			Operadores
+257			1			Numeros
+258			;			Simbolos Especiales
+259			}			Simbolos Especiales
+260			break			Palabras Reservadas
+261			;			Simbolos Especiales
+262			}			Simbolos Especiales
+263			return			Palabras Reservadas
+264			;			Simbolos Especiales
+265			}			Simbolos Especiales
+266			int			Palabras Reservadas
+267			missionControl			Variables
+268			(			Simbolos Especiales
+269			)			Simbolos Especiales
+270			{			Simbolos Especiales
+271			int			Palabras Reservadas
+272			result			Variables
+273			=			Operadores
+274			0			Numeros
+275			;			Simbolos Especiales
+276			int			Palabras Reservadas
+277			localValue			Variables
+278			=			Operadores
+279			5			Numeros
+280			;			Simbolos Especiales
+281			result			Variables
+282			=			Operadores
+283			computeEnergy			Variables
+284			(			Simbolos Especiales
+285			)			Simbolos Especiales
+286			;			Simbolos Especiales
+287			result			Variables
+288			=			Operadores
+289			result			Variables
+290			+			Operadores
+291			localValue			Variables
+292			;			Simbolos Especiales
+293			if			Palabras Reservadas
+294			(			Simbolos Especiales
+295			result			Variables
+296			>			Operadores
+297			targetAltitude			Variables
+298			&&			Operadores Logicos
+299			payloadReady			Variables
+300			==			Operadores
+301			false			Palabras Reservadas
+302			||			Operadores Logicos
+303			missionActive			Variables
+304			)			Simbolos Especiales
+305			{			Simbolos Especiales
+306			result			Variables
+307			=			Operadores
+308			result			Variables
+309			+			Operadores
+310			1			Numeros
+311			;			Simbolos Especiales
+312			}			Simbolos Especiales
+313			for			Palabras Reservadas
+314			(			Simbolos Especiales
+315			int			Palabras Reservadas
+316			step			Variables
+317			=			Operadores
+318			0			Numeros
+319			;			Simbolos Especiales
+320			step			Variables
+321			<			Operadores
+322			5			Numeros
+323			;			Simbolos Especiales
+324			step			Variables
+325			++			Operadores
+326			)			Simbolos Especiales
+327			{			Simbolos Especiales
+328			if			Palabras Reservadas
+329			(			Simbolos Especiales
+330			step			Variables
+331			==			Operadores
+332			4			Numeros
+333			)			Simbolos Especiales
+334			{			Simbolos Especiales
+335			break			Palabras Reservadas
+336			;			Simbolos Especiales
+337			}			Simbolos Especiales
+338			result			Variables
+339			=			Operadores
+340			result			Variables
+341			+			Operadores
+342			step			Variables
+343			;			Simbolos Especiales
+344			}			Simbolos Especiales
+345			manageFlight			Variables
+346			(			Simbolos Especiales
+347			)			Simbolos Especiales
+348			;			Simbolos Especiales
+349			print			Palabras Reservadas
+350			(			Simbolos Especiales
+351			result			Variables
+352			)			Simbolos Especiales
+353			;			Simbolos Especiales
+354			return			Palabras Reservadas
+355			result			Variables
+356			;			Simbolos Especiales
+357			}			Simbolos Especiales

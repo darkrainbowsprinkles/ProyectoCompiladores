@@ -1,0 +1,125 @@
+struct FlightControl begin
+field int speed
+field int altitude
+field bool enabled
+struct FlightControl end
+struct PayloadBay begin
+field int mass
+field char status
+field bool sealed
+struct PayloadBay end
+globalCounter = 0
+targetAltitude = 120
+missionActive = true
+payloadReady = false
+missionPhase = 'B'
+function computeEnergy int begin
+base = 8
+multiplier = 3
+t1 = base * multiplier
+t2 = t1 + 4
+energy = t2
+t3 = energy >= 28
+ifFalse t3 goto L1
+t4 = energy - 2
+energy = t4
+goto L2
+L1:
+t5 = energy + 2
+energy = t5
+L2:
+return energy
+end function computeEnergy
+function manageFlight void begin
+cycle = 0
+t6 = call computeEnergy
+flightEnergy = t6
+L7:
+t7 = cycle < 3
+t8 = missionActive == true
+t9 = t7 && t8
+ifFalse t9 goto L8
+t10 = cycle + 1
+cycle = t10
+t11 = globalCounter + cycle
+globalCounter = t11
+t12 = cycle == 1
+ifFalse t12 goto L5
+payloadReady = true
+goto L6
+L5:
+t13 = cycle == 2
+ifFalse t13 goto L3
+payloadReady = false
+goto L4
+L3:
+payloadReady = true
+L4:
+L6:
+goto L7
+L8:
+L9:
+t14 = flightEnergy - 1
+flightEnergy = t14
+t15 = targetAltitude + 1
+targetAltitude = t15
+t16 = flightEnergy > 20
+if t16 goto L9
+switch missionPhase begin
+case 'A':
+print globalCounter
+case 'B':
+t17 = payloadReady == false
+t18 = missionActive && t17
+ifFalse t18 goto L10
+t19 = targetAltitude + 5
+targetAltitude = t19
+goto L11
+L10:
+t20 = targetAltitude + 10
+targetAltitude = t20
+L11:
+default:
+L12:
+t21 = globalCounter < 3
+ifFalse t21 goto L13
+t22 = globalCounter + 1
+globalCounter = t22
+goto L12
+L13:
+switch end
+return
+end function manageFlight
+function missionControl int begin
+result = 0
+localValue = 5
+t23 = call computeEnergy
+result = t23
+t24 = result + localValue
+result = t24
+t25 = result > targetAltitude
+t26 = payloadReady == false
+t27 = t25 && t26
+t28 = t27 || missionActive
+ifFalse t28 goto L14
+t29 = result + 1
+result = t29
+L14:
+step = 0
+L16:
+t30 = step < 5
+ifFalse t30 goto L17
+t32 = step == 4
+ifFalse t32 goto L15
+break
+L15:
+t33 = result + step
+result = t33
+t31 = step + 1
+step = t31
+goto L16
+L17:
+t34 = call manageFlight
+print result
+return result
+end function missionControl

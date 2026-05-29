@@ -1101,7 +1101,7 @@ IfAttr *makeIfAttr(char *conditionCode, char *conditionPlace, char *thenCode)
 
 void writeIntermediateCode()
 {
-    FILE *file = fopen("codigo_intermedio.txt", "w");
+    FILE *file = fopen("output/codigo_intermedio.txt", "w");
 
     if(file == NULL)
     {
@@ -1112,14 +1112,14 @@ void writeIntermediateCode()
     fprintf(file, "%s", generatedCode != NULL ? generatedCode : "");
     fclose(file);
 
-    printf("\n[Info] Codigo intermedio guardado en 'codigo_intermedio.txt'\n");
+    printf("\n[Info] Codigo intermedio guardado en 'output/codigo_intermedio.txt'\n");
 }
 
 void writeOptimizedIntermediateCode()
 {
     optimizedCode = optimizeIntermediateCodeText(generatedCode);
 
-    FILE *file = fopen("codigo_intermedio_optimizado.txt", "w");
+    FILE *file = fopen("output/codigo_intermedio_optimizado.txt", "w");
 
     if(file == NULL)
     {
@@ -1130,7 +1130,7 @@ void writeOptimizedIntermediateCode()
     fprintf(file, "%s", optimizedCode != NULL ? optimizedCode : "");
     fclose(file);
 
-    printf("[Info] Codigo intermedio optimizado guardado en 'codigo_intermedio_optimizado.txt'\n");
+    printf("[Info] Codigo intermedio optimizado guardado en 'output/codigo_intermedio_optimizado.txt'\n");
 }
 
 void writeFinalCode()
@@ -1138,7 +1138,7 @@ void writeFinalCode()
     char *source = optimizedCode != NULL ? optimizedCode : generatedCode;
     char *finalCode = generateFinalCodeText(source);
 
-    FILE *file = fopen("codigo_final.txt", "w");
+    FILE *file = fopen("output/codigo_final.txt", "w");
 
     if(file == NULL)
     {
@@ -1151,7 +1151,7 @@ void writeFinalCode()
     fclose(file);
     free(finalCode);
 
-    printf("[Info] Codigo final guardado en 'codigo_final.txt'\n");
+    printf("[Info] Codigo final guardado en 'output/codigo_final.txt'\n");
 }
 %}
 
@@ -1165,7 +1165,7 @@ void writeFinalCode()
 
 %type <string_val> type
 %type <expr> operation expression
-%type <code> program statement declaration function_declaration for_statement if_statement while_statement do_while_statement switch_statement struct_statement action_braces switch_content struct_content
+%type <code> program statement declaration function_declaration for_statement if_statement while_statement do_while_statement switch_statement struct_statement action_braces switch_content switch_case_body non_break_statement struct_content
 %type <forpart> for_content
 %type <ifpart> if_content
 %token <string_val> IDENTIFIER
@@ -1448,7 +1448,7 @@ switch_content:
         char *code = joinTexts(2, $1->code, $2->code);
         $$ = makeCodeAttr(code);
     }
-    | CASE operation COLON program BREAK SEMICOLON switch_content
+    | CASE operation COLON switch_case_body BREAK SEMICOLON switch_content
     {
         char *code = joinTexts(4,
                                formatText("case %s:\n", $2->place),
@@ -1457,10 +1457,77 @@ switch_content:
                                $7->code);
         $$ = makeCodeAttr(code);
     }
-    | DEFAULT COLON program BREAK SEMICOLON
+    | DEFAULT COLON switch_case_body BREAK SEMICOLON
     {
         char *code = joinTexts(2, "default:\n", $3->code);
         $$ = makeCodeAttr(code);
+    };
+
+switch_case_body:
+    /* empty */
+    {
+        $$ = makeCodeAttr("");
+    }
+    | non_break_statement switch_case_body
+    {
+        char *code = joinTexts(2, $1->code, $2->code);
+        $$ = makeCodeAttr(code);
+    };
+
+non_break_statement:
+    declaration SEMICOLON
+    {
+        $$ = $1;
+    }
+    | function_declaration
+    {
+        $$ = $1;
+    }
+    | RETURN operation SEMICOLON
+    {
+        char *code = joinTexts(2, $2->code, formatText("return %s\n", $2->place));
+        $$ = makeCodeAttr(code);
+    }
+    | RETURN SEMICOLON
+    {
+        $$ = makeCodeAttr("return\n");
+    }
+    | PRINT OPEN_PARENTHESIS operation CLOSE_PARENTHESIS SEMICOLON
+    {
+        char *code = joinTexts(2, $3->code, formatText("print %s\n", $3->place));
+        $$ = makeCodeAttr(code);
+    }
+    | READ OPEN_PARENTHESIS IDENTIFIER CLOSE_PARENTHESIS SEMICOLON
+    {
+        $$ = makeCodeAttr(formatText("read %s\n", $3));
+    }
+    | for_statement
+    {
+        $$ = $1;
+    }
+    | if_statement
+    {
+        $$ = $1;
+    }
+    | while_statement
+    {
+        $$ = $1;
+    }
+    | while_statement SEMICOLON
+    {
+        $$ = $1;
+    }
+    | do_while_statement SEMICOLON
+    {
+        $$ = $1;
+    }
+    | switch_statement
+    {
+        $$ = $1;
+    }
+    | struct_statement SEMICOLON
+    {
+        $$ = $1;
     };
 
 struct_statement:
@@ -1639,7 +1706,7 @@ void yyerror(char *msg)
 
 void writeSymbolTableToFile() 
 {
-    FILE *file = fopen("tabla_simbolos.txt", "w");
+    FILE *file = fopen("output/tabla_simbolos.txt", "w");
 
     if(file == NULL) 
     {
@@ -1659,7 +1726,7 @@ void writeSymbolTableToFile()
     }
     
     fclose(file);
-    printf("\n[Info] Tabla de simbolos guardada en 'tabla_simbolos.txt'\n");
+    printf("\n[Info] Tabla de simbolos guardada en 'output/tabla_simbolos.txt'\n");
 }
 
 int main(int argc, char *argv[]) {

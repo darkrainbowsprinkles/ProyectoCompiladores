@@ -1,7 +1,14 @@
 %{
 #include <stdio.h>
 #include <string.h>
-#include "parser.tab.h"
+
+typedef struct ExprAttr ExprAttr;
+typedef struct CodeAttr CodeAttr;
+typedef struct ForAttr ForAttr;
+typedef struct IfAttr IfAttr;
+
+#include <stdio.h>
+#include "y.tab.h"
 
 #define MAX_TOKENS 1000
 
@@ -97,7 +104,7 @@ void registerToken(char *value, char *type)
 
 void writeTokenTypes()
 {
-    FILE *file = fopen("tokens.txt", "w");
+    FILE *file = fopen("output/tokens.txt", "w");
 
     if(file == NULL)
     {
@@ -120,7 +127,7 @@ void writeTokenTypes()
 
 void writeTokenTable()
 {
-    FILE *file = fopen("table.txt", "w");
+    FILE *file = fopen("output/table.txt", "w");
 
     if(file == NULL)
     {

@@ -26,7 +26,7 @@ Todo el código fuente del compilador está dentro de la carpeta `Codigo/`.
 - `input.txt`, `input1.txt`, `input2.txt`, `input3.txt`: programas de prueba.
 - `test.c`: archivo de prueba adicional.
 
-Durante la ejecución se generan estos archivos de texto:
+Durante la ejecución se generan estos archivos de texto dentro de `Codigo/output/`:
 
 - `tokens.txt`
 - `table.txt`
