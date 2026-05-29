@@ -1875,7 +1875,7 @@ void registerToken(char *value, char *type)
 
 void writeTokenTypes()
 {
-    FILE *file = fopen("output/tokens.txt", "w");
+    FILE *file = fopen("output/tabla_tokens.txt", "w");
 
     if(file == NULL)
     {
@@ -1898,7 +1898,7 @@ void writeTokenTypes()
 
 void writeTokenTable()
 {
-    FILE *file = fopen("output/table.txt", "w");
+    FILE *file = fopen("output/tabla_variables.txt", "w");
 
     if(file == NULL)
     {

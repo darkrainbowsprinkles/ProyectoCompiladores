@@ -28,8 +28,8 @@ Todo el código fuente del compilador está dentro de la carpeta `Codigo/`.
 
 Durante la ejecución se generan estos archivos de texto dentro de `Codigo/output/`:
 
-- `tokens.txt`
-- `table.txt`
+- `tabla_tokens.txt`
+- `tabla_variables.txt`
 - `tabla_simbolos.txt`
 - `codigo_intermedio.txt`
 - `codigo_intermedio_optimizado.txt`
